@@ -32,13 +32,14 @@ export async function POST(req: NextRequest) {
     .order('captured_at', { ascending: false })
     .limit(50);
 
-  const byPlatform = new Map<string, typeof latest>();
+  type SnapshotRow = NonNullable<typeof latest>[number];
+  const byPlatform = new Map<string, SnapshotRow[]>();
   for (const s of latest || []) {
     if (!byPlatform.has(s.platform)) byPlatform.set(s.platform, []);
     byPlatform.get(s.platform)!.push(s);
   }
-  const current: typeof latest = [];
-  const previous: typeof latest = [];
+  const current: SnapshotRow[] = [];
+  const previous: SnapshotRow[] = [];
   for (const arr of byPlatform.values()) {
     if (arr[0]) current.push(arr[0]);
     if (arr[1]) previous.push(arr[1]);
