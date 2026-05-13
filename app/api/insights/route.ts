@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { generateInsight, generateRecapCopy, generateContentStrategy } from '@/lib/ai/insights';
+import type { Post, Snapshot } from '@/lib/supabase/types';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -25,16 +26,20 @@ export async function POST(req: NextRequest) {
   if (!account) return NextResponse.json({ error: 'account not found' }, { status: 404 });
 
   // Latest snapshot per platform + prior
-  const { data: latest } = await sb
+  const { data: latestRaw } = await sb
     .from('snapshots')
     .select('*, posts(*)')
     .eq('account_id', account.id)
     .order('captured_at', { ascending: false })
     .limit(50);
+  // supabase-js 2.105 typed-select parser can't resolve embedded relations from
+  // our minimal Database['public']['Tables'][...]['Relationships']: [] — cast
+  // through `unknown` to the shape the rest of this handler expects.
+  const latest = (latestRaw ?? []) as unknown as Array<Snapshot & { posts: Post[] }>;
 
-  type SnapshotRow = NonNullable<typeof latest>[number];
+  type SnapshotRow = (typeof latest)[number];
   const byPlatform = new Map<string, SnapshotRow[]>();
-  for (const s of latest || []) {
+  for (const s of latest) {
     if (!byPlatform.has(s.platform)) byPlatform.set(s.platform, []);
     byPlatform.get(s.platform)!.push(s);
   }
@@ -75,7 +80,11 @@ export async function POST(req: NextRequest) {
       followers: s.followers,
       growth: s.growth,
       topPost: s.posts?.[0]
-        ? { title: s.posts[0].title, views: s.posts[0].views, likes: s.posts[0].likes }
+        ? {
+            title: s.posts[0].title ?? undefined,
+            views: s.posts[0].views ?? undefined,
+            likes: s.posts[0].likes ?? undefined
+          }
         : undefined
     }));
     const out = await generateRecapCopy({ account, periodLabel, platformSummary: summary });

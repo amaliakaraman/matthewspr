@@ -221,7 +221,12 @@ export interface Database {
       cron_runs: TableOf<CronRun>;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      try_lock_connection_refresh: {
+        Args: Indexable<{ conn: string; lease_seconds?: number }>;
+        Returns: string | null;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { pullSnapshotForConnection } from '@/lib/snapshot-engine';
+import type { Snapshot } from '@/lib/supabase/types';
 import { z } from 'zod';
 
 const BodySchema = z.object({
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
     .eq('account_id', accountId)
     .order('captured_at', { ascending: false })
     .limit(limit);
-  if (platform) q = q.eq('platform', platform);
+  if (platform) q = q.eq('platform', platform as Snapshot['platform']);
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ snapshots: data });

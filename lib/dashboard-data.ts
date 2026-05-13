@@ -55,7 +55,7 @@ export async function loadOverview() {
   }
 
   for (const cRaw of connections || []) {
-    const c = cRaw as PlatformConnection & { snapshots?: SnapshotWithPosts[] };
+    const c = cRaw as unknown as PlatformConnection & { snapshots?: SnapshotWithPosts[] };
     const snaps = (c.snapshots || []).slice(0, 2);
     const latest = snaps[0] || null;
     const prior = snaps[1] || null;

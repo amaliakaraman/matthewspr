@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       .limit(50);
     const seen = new Set<string>();
     const latestPerPlatform: Array<Snapshot & { posts: Post[] }> = [];
-    for (const s of (snaps || []) as Array<Snapshot & { posts: Post[] }>) {
+    for (const s of (snaps || []) as unknown as Array<Snapshot & { posts: Post[] }>) {
       if (!seen.has(s.platform)) {
         seen.add(s.platform);
         latestPerPlatform.push(s);
