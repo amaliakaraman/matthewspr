@@ -181,24 +181,37 @@ export interface CronRun {
 /**
  * Minimal Database type — enough for Supabase client generic typing.
  * Replace with generated types in production.
+ *
+ * NOTE: must satisfy `GenericSchema` from @supabase/postgrest-js, which (as of
+ * supabase-js >= 2.71) requires `Tables`, `Views`, `Functions`, and a
+ * `Relationships: []` field on every table. Drop any of these and the typed
+ * client silently falls back to `Schema = never`, which makes `.insert(...)`
+ * infer as `never[]` and breaks every write at the type level.
  */
+type TableOf<T> = {
+  Row: T;
+  Insert: Partial<T>;
+  Update: Partial<T>;
+  Relationships: [];
+};
+
 export interface Database {
   public: {
     Tables: {
-      orgs: { Row: Org; Insert: Partial<Org>; Update: Partial<Org> };
-      accounts: { Row: Account; Insert: Partial<Account>; Update: Partial<Account> };
-      platform_connections: {
-        Row: PlatformConnection;
-        Insert: Partial<PlatformConnection>;
-        Update: Partial<PlatformConnection>;
-      };
-      snapshots: { Row: Snapshot; Insert: Partial<Snapshot>; Update: Partial<Snapshot> };
-      posts: { Row: Post; Insert: Partial<Post>; Update: Partial<Post> };
-      insights: { Row: Insight; Insert: Partial<Insight>; Update: Partial<Insight> };
-      recaps: { Row: Recap; Insert: Partial<Recap>; Update: Partial<Recap> };
-      org_invites: { Row: OrgInvite; Insert: Partial<OrgInvite>; Update: Partial<OrgInvite> };
-      org_members: { Row: OrgMember; Insert: Partial<OrgMember>; Update: Partial<OrgMember> };
-      cron_runs: { Row: CronRun; Insert: Partial<CronRun>; Update: Partial<CronRun> };
+      orgs: TableOf<Org>;
+      accounts: TableOf<Account>;
+      platform_connections: TableOf<PlatformConnection>;
+      snapshots: TableOf<Snapshot>;
+      posts: TableOf<Post>;
+      insights: TableOf<Insight>;
+      recaps: TableOf<Recap>;
+      org_invites: TableOf<OrgInvite>;
+      org_members: TableOf<OrgMember>;
+      cron_runs: TableOf<CronRun>;
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }
