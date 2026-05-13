@@ -188,10 +188,21 @@ export interface CronRun {
  * client silently falls back to `Schema = never`, which makes `.insert(...)`
  * infer as `never[]` and breaks every write at the type level.
  */
+/**
+ * Force an index signature onto each row type. Required because
+ * `GenericTable` from @supabase/postgrest-js declares
+ * `Row/Insert/Update: Record<string, unknown>`, and plain `interface` types
+ * (or named `type` aliases without an index signature) are NOT assignable to
+ * `Record<string, unknown>`. Intersecting with `Record<string, unknown>` adds
+ * the index signature so the constraint check passes and `Schema` resolves
+ * to our real `Database['public']` (rather than collapsing to `never`).
+ */
+type Indexable<T> = T & Record<string, unknown>;
+
 type TableOf<T> = {
-  Row: T;
-  Insert: Partial<T>;
-  Update: Partial<T>;
+  Row: Indexable<T>;
+  Insert: Indexable<Partial<T>>;
+  Update: Indexable<Partial<T>>;
   Relationships: [];
 };
 
