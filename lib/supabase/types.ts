@@ -167,6 +167,17 @@ export interface Recap {
   updated_at: string;
 }
 
+export interface CronRun {
+  id: string;
+  job: string;
+  org_id: string | null;
+  started_at: string;
+  finished_at: string | null;
+  ok: boolean | null;
+  message: string | null;
+  results: Record<string, unknown>;
+}
+
 /**
  * Minimal Database type — enough for Supabase client generic typing.
  * Replace with generated types in production.
@@ -187,6 +198,7 @@ export interface Database {
       recaps: { Row: Recap; Insert: Partial<Recap>; Update: Partial<Recap> };
       org_invites: { Row: OrgInvite; Insert: Partial<OrgInvite>; Update: Partial<OrgInvite> };
       org_members: { Row: OrgMember; Insert: Partial<OrgMember>; Update: Partial<OrgMember> };
+      cron_runs: { Row: CronRun; Insert: Partial<CronRun>; Update: Partial<CronRun> };
     };
   };
 }
