@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/weekly-snapshot",
+      "schedule": "0 13 * * 1"
+    },
+    {
+      "path": "/api/cron/daily-light",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/token-health",
+      "schedule": "30 4 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/recap/generate/route.ts": { "maxDuration": 60 },
+    "app/api/cron/weekly-snapshot/route.ts": { "maxDuration": 300 },
+    "app/api/cron/token-health/route.ts": { "maxDuration": 120 }
+  }
+}
