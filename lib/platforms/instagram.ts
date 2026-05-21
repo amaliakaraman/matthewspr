@@ -1,35 +1,41 @@
 import type { PlatformAdapter, NormalizedSnapshot, NormalizedPost } from './types';
 
 /**
- * Instagram Graph API (Business/Creator accounts only).
+ * Instagram API with Instagram Login (the 2024+ flow).
  *
- * Flow:
- *  1) User authorizes via Facebook Login → returns access token.
- *  2) Find the Page → find IG Business Account ID.
- *  3) Query `/{ig-user-id}/insights` for account metrics and
- *     `/{ig-user-id}/media` for top posts.
+ * This replaces the older Facebook-Login-mediated Instagram Graph API. The
+ * new flow:
+ *   1) User authorizes directly via instagram.com/oauth/authorize
+ *   2) Code exchanges at api.instagram.com/oauth/access_token → short-lived
+ *      user token (1h)
+ *   3) Exchange short-lived → long-lived (~60d) at
+ *      graph.instagram.com/access_token?grant_type=ig_exchange_token
+ *   4) All data calls hit graph.instagram.com (NOT graph.facebook.com)
+ *   5) Refresh extends the long-lived token by another 60d via
+ *      graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token
  *
- * Scopes (Facebook permissions):
- *  - instagram_basic
- *  - instagram_manage_insights
- *  - pages_show_list
- *  - pages_read_engagement
+ * Requirements:
+ *  - Instagram account must be Business or Creator (not Personal)
+ *  - For Dev mode access, the account must be an Instagram Tester on the
+ *    Meta app (App Roles → Instagram Testers → accepted invite)
  */
-const AUTH = 'https://www.facebook.com/v21.0/dialog/oauth';
-const TOKEN = 'https://graph.facebook.com/v21.0/oauth/access_token';
-const API = 'https://graph.facebook.com/v21.0';
+
+const AUTH = 'https://www.instagram.com/oauth/authorize';
+const TOKEN = 'https://api.instagram.com/oauth/access_token';
+const API = 'https://graph.instagram.com';
 
 const SCOPES = [
-  'instagram_basic',
-  'instagram_manage_insights',
-  'pages_show_list',
-  'pages_read_engagement'
+  'instagram_business_basic',
+  'instagram_business_manage_insights'
 ];
 
-async function igFetch<T>(token: string, path: string): Promise<T> {
+async function ig<T>(token: string, path: string): Promise<T> {
   const url = `${API}${path}${path.includes('?') ? '&' : '?'}access_token=${token}`;
   const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`instagram ${path} ${res.status}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`instagram ${path} ${res.status} ${text.slice(0, 200)}`);
+  }
   return (await res.json()) as T;
 }
 
@@ -47,71 +53,67 @@ export const instagram: PlatformAdapter = {
   },
 
   async exchangeCode({ code, redirectUri }) {
-    const u = new URL(TOKEN);
-    u.searchParams.set('client_id', process.env.INSTAGRAM_CLIENT_ID!);
-    u.searchParams.set('client_secret', process.env.INSTAGRAM_CLIENT_SECRET!);
-    u.searchParams.set('redirect_uri', redirectUri);
-    u.searchParams.set('code', code);
-    const res = await fetch(u.toString(), { cache: 'no-store' });
-    if (!res.ok) throw new Error(`instagram token ${res.status}`);
-    const j = await res.json();
-    const accessToken = j.access_token as string;
-
-    // Exchange the short-lived user token for a long-lived (~60d) one. This
-    // is what we'll need to re-extend going forward (and what `refresh()`
-    // expects to receive via `refresh_token_enc`).
-    let userLongLived = accessToken;
-    let userExpiresInSec: number | undefined = j.expires_in;
-    try {
-      const ll = new URL(TOKEN);
-      ll.searchParams.set('grant_type', 'fb_exchange_token');
-      ll.searchParams.set('client_id', process.env.INSTAGRAM_CLIENT_ID!);
-      ll.searchParams.set('client_secret', process.env.INSTAGRAM_CLIENT_SECRET!);
-      ll.searchParams.set('fb_exchange_token', accessToken);
-      const llRes = await fetch(ll.toString(), { cache: 'no-store' });
-      if (llRes.ok) {
-        const llJ = await llRes.json();
-        userLongLived = llJ.access_token || accessToken;
-        userExpiresInSec = llJ.expires_in ?? userExpiresInSec;
-      }
-    } catch {
-      /* fall back to the short-lived token; refresh() will still upgrade it */
+    // 1) Short-lived token (1h).
+    const body = new URLSearchParams({
+      client_id: process.env.INSTAGRAM_CLIENT_ID!,
+      client_secret: process.env.INSTAGRAM_CLIENT_SECRET!,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri,
+      code
+    });
+    const shortRes = await fetch(TOKEN, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    if (!shortRes.ok) {
+      const text = await shortRes.text().catch(() => '');
+      throw new Error(`instagram token ${shortRes.status} ${text}`);
     }
+    const shortJson = (await shortRes.json()) as {
+      access_token: string;
+      user_id: number | string;
+    };
 
-    // Find the IG business account by walking the user's pages. Page tokens
-    // derived from a long-lived user token are themselves long-lived and are
-    // what we actually use for `/insights` calls.
-    const pages = await igFetch<{
-      data: Array<{ id: string; name: string; access_token: string }>;
-    }>(userLongLived, '/me/accounts');
-    let externalId: string | undefined;
+    // 2) Long-lived exchange (~60 days).
+    const llUrl = new URL(`${API}/access_token`);
+    llUrl.searchParams.set('grant_type', 'ig_exchange_token');
+    llUrl.searchParams.set('client_secret', process.env.INSTAGRAM_CLIENT_SECRET!);
+    llUrl.searchParams.set('access_token', shortJson.access_token);
+    const llRes = await fetch(llUrl.toString(), { cache: 'no-store' });
+    if (!llRes.ok) {
+      const text = await llRes.text().catch(() => '');
+      throw new Error(`instagram ig_exchange_token ${llRes.status} ${text}`);
+    }
+    const ll = (await llRes.json()) as {
+      access_token: string;
+      token_type?: string;
+      expires_in?: number;
+    };
+
+    const externalId = String(shortJson.user_id);
+
+    // Profile lookup for handle.
     let handle: string | undefined;
-    let pageToken = userLongLived;
-    for (const p of pages.data) {
-      try {
-        const ig = await igFetch<{ instagram_business_account?: { id: string; username: string } }>(
-          p.access_token,
-          `/${p.id}?fields=instagram_business_account{id,username}`
-        );
-        if (ig.instagram_business_account) {
-          externalId = ig.instagram_business_account.id;
-          handle = ig.instagram_business_account.username;
-          pageToken = p.access_token;
-          break;
-        }
-      } catch {}
+    try {
+      const profile = await ig<{ username: string }>(
+        ll.access_token,
+        `/${externalId}?fields=username`
+      );
+      handle = profile.username;
+    } catch {
+      /* not fatal; we already have the user_id */
     }
 
     return {
-      accessToken: pageToken,
-      // Instagram has no separate refresh token; the long-lived USER token
-      // doubles as its own re-extension input via `fb_exchange_token`. We
-      // persist it in `refresh_token_enc` so `getValidAccessToken` has
-      // something to call `refresh()` with within the 14-day pre-expiry lead.
-      refreshToken: userLongLived,
-      expiresAt: userExpiresInSec
-        ? new Date(Date.now() + userExpiresInSec * 1000).toISOString()
-        : undefined,
+      accessToken: ll.access_token,
+      // No separate refresh token in this flow — we re-extend the access
+      // token itself. Store it as both so `lib/token-manager.ts` can call
+      // `refresh({ refreshToken })` and get an extension.
+      refreshToken: ll.access_token,
+      expiresAt: ll.expires_in
+        ? new Date(Date.now() + ll.expires_in * 1000).toISOString()
+        : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
       externalId,
       handle: handle ? `@${handle}` : undefined,
       profileUrl: handle ? `https://instagram.com/${handle}` : undefined
@@ -127,35 +129,45 @@ export const instagram: PlatformAdapter = {
     };
     if (!externalId) return out;
 
-    // Restrict the per-snapshot aggregates to the same window the
-    // account-level `reach`/`profile_views` numbers use (the API's 28-day
-    // rolling window). Otherwise the per-snapshot `views`/`likes` are sums
-    // over an arbitrarily large bag of posts that span multiple periods.
+    // Constrain post aggregates to the IG account-insights window (28d
+    // rolling) so per-snapshot views/likes match `reach`/`profile_views`.
     const sinceMs = since
       ? Date.parse(since)
       : Date.now() - 28 * 24 * 60 * 60 * 1000;
 
-    const profile = await igFetch<{
+    const profile = await ig<{
       followers_count: number;
       media_count: number;
       username: string;
-    }>(accessToken, `/${externalId}?fields=followers_count,media_count,username`);
+    }>(
+      accessToken,
+      `/${externalId}?fields=followers_count,media_count,username`
+    );
     out.followers = profile.followers_count;
     out.handle = `@${profile.username}`;
     out.profileUrl = `https://instagram.com/${profile.username}`;
 
-    const insights = await igFetch<{
-      data: Array<{ name: string; values: Array<{ value: number }> }>;
+    // Account-level insights — newer API requires `metric_type=total_value`.
+    const insights = await ig<{
+      data: Array<{
+        name: string;
+        total_value?: { value: number };
+        values?: Array<{ value: number }>;
+      }>;
     }>(
       accessToken,
-      `/${externalId}/insights?metric=reach,profile_views&period=days_28`
+      `/${externalId}/insights?metric=reach,profile_views&period=days_28&metric_type=total_value`
     ).catch(() => ({ data: [] }));
     for (const m of insights.data) {
-      if (m.name === 'reach') out.impressions = m.values?.[0]?.value;
-      if (m.name === 'profile_views') out.profileVisits = m.values?.[0]?.value;
+      const v =
+        m.total_value?.value ??
+        m.values?.reduce((s, x) => s + (x.value || 0), 0);
+      if (v == null) continue;
+      if (m.name === 'reach') out.impressions = v;
+      if (m.name === 'profile_views') out.profileVisits = v;
     }
 
-    const media = await igFetch<{
+    const media = await ig<{
       data: Array<{
         id: string;
         caption?: string;
@@ -172,22 +184,34 @@ export const instagram: PlatformAdapter = {
       `/${externalId}/media?fields=id,caption,media_url,permalink,thumbnail_url,timestamp,media_type,like_count,comments_count&limit=30`
     );
 
-    // For each, pull insights (views, plays, saves)
     const enriched: NormalizedPost[] = [];
-    for (const m of media.data.slice(0, 30)) {
-      let views = 0,
-        saves = 0,
-        shares = 0;
+    for (const m of media.data) {
+      let views = 0;
+      let saves = 0;
+      let shares = 0;
       try {
-        const ins = await igFetch<{
-          data: Array<{ name: string; values: Array<{ value: number }> }>;
-        }>(accessToken, `/${m.id}/insights?metric=plays,saved,shares,reach`);
+        const ins = await ig<{
+          data: Array<{
+            name: string;
+            total_value?: { value: number };
+            values?: Array<{ value: number }>;
+          }>;
+        }>(
+          accessToken,
+          `/${m.id}/insights?metric=views,saved,shares,reach&metric_type=total_value`
+        );
         for (const x of ins.data) {
-          if (x.name === 'plays' || x.name === 'reach') views = Math.max(views, x.values?.[0]?.value || 0);
-          if (x.name === 'saved') saves = x.values?.[0]?.value || 0;
-          if (x.name === 'shares') shares = x.values?.[0]?.value || 0;
+          const v =
+            x.total_value?.value ??
+            x.values?.reduce((s, y) => s + (y.value || 0), 0) ??
+            0;
+          if (x.name === 'views' || x.name === 'reach') views = Math.max(views, v);
+          if (x.name === 'saved') saves = v;
+          if (x.name === 'shares') shares = v;
         }
-      } catch {}
+      } catch {
+        /* per-post insights occasionally 404 on very fresh posts */
+      }
       enriched.push({
         externalId: m.id,
         permalink: m.permalink,
@@ -219,45 +243,32 @@ export const instagram: PlatformAdapter = {
   },
 
   /**
-   * "Refresh" for Instagram is really a re-extension. The input
-   * (`refreshToken`) is the previously-issued long-lived USER token. We pass
-   * it back to `fb_exchange_token` to reset its 60-day clock, then re-derive
-   * the long-lived PAGE token from `/me/accounts` (the page token is what's
-   * actually used for `/insights` calls).
+   * Re-extend the long-lived token. The IG Login flow doesn't issue a
+   * separate refresh token — the access token IS the refresh material. We
+   * call `/refresh_access_token` to bump the expiry forward by ~60 days.
    *
    * Called by `lib/token-manager.ts` within 14 days of expiry.
    */
   async refresh({ refreshToken }) {
-    const u = new URL(TOKEN);
-    u.searchParams.set('grant_type', 'fb_exchange_token');
-    u.searchParams.set('client_id', process.env.INSTAGRAM_CLIENT_ID!);
-    u.searchParams.set('client_secret', process.env.INSTAGRAM_CLIENT_SECRET!);
-    u.searchParams.set('fb_exchange_token', refreshToken);
+    const u = new URL(`${API}/refresh_access_token`);
+    u.searchParams.set('grant_type', 'ig_refresh_token');
+    u.searchParams.set('access_token', refreshToken);
     const res = await fetch(u.toString(), { cache: 'no-store' });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
       throw new Error(`instagram refresh ${res.status} ${text}`);
     }
-    const j = (await res.json()) as { access_token: string; expires_in?: number };
-    const userLongLived = j.access_token;
-
-    let pageToken = userLongLived;
-    try {
-      const pages = await igFetch<{
-        data: Array<{ id: string; access_token: string; instagram_business_account?: { id: string } }>;
-      }>(userLongLived, '/me/accounts?fields=id,access_token,instagram_business_account');
-      const withIg = pages.data.find((p) => p.instagram_business_account);
-      if (withIg) pageToken = withIg.access_token;
-    } catch {
-      /* fall back to the user token; pull will surface any auth issue */
-    }
-
+    const j = (await res.json()) as {
+      access_token: string;
+      token_type?: string;
+      expires_in?: number;
+    };
     return {
-      accessToken: pageToken,
-      refreshToken: userLongLived,
+      accessToken: j.access_token,
+      refreshToken: j.access_token,
       expiresAt: j.expires_in
         ? new Date(Date.now() + j.expires_in * 1000).toISOString()
-        : undefined
+        : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
     };
   }
 };

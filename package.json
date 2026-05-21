@@ -4,7 +4,7 @@
   "private": true,
   "description": "KM Socials Command Center — production analytics platform for Kyle Matthews + The Matthews Mentality Podcast across Spotify, Captivate, YouTube, Instagram, TikTok, LinkedIn, and X.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

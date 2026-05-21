@@ -144,15 +144,22 @@ export function PlatformCard({
           Open platform →
         </span>
         {data.profileUrl && (
-          <a
-            href={data.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(
+                data.profileUrl!,
+                '_blank',
+                'noopener,noreferrer'
+              );
+            }}
+            aria-label={`Open ${data.handle || data.platform} in a new tab`}
             className="text-ink-mute hover:text-ink"
           >
             ↗
-          </a>
+          </button>
         )}
       </div>
     </Link>

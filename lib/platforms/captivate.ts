@@ -11,7 +11,14 @@ import type { PlatformAdapter, NormalizedSnapshot, NormalizedPost } from './type
  * Because session tokens are short-lived we re-authenticate at the start of
  * every snapshot pull rather than persisting the session.
  *
- * Docs: https://docs.captivate.fm/
+ * Docs: https://developers.captivate.fm/
+ *
+ * KNOWN LIMITATION: Captivate's public REST API does NOT expose per-episode
+ * or per-show download counts. Those numbers are visible in Captivate's web
+ * dashboard but the analytics endpoints powering that UI are private and
+ * undocumented. We surface what IS available (episode count, episode
+ * metadata, publish dates) and leave `downloads` for manual entry via the
+ * Manual Snapshot form. Confirmed against the v1 API on 2026-05-21.
  */
 const API = 'https://api.captivate.fm';
 
@@ -72,12 +79,26 @@ export const captivate: PlatformAdapter = {
 
       const shows = await caFetch<{
         success: boolean;
-        shows: Array<{ id: string; title: string; episodes?: number }>;
+        shows: Array<{
+          id: string;
+          title: string;
+          episode_count?: number;
+          published_date?: string;
+          last_episode_title?: string;
+          last_episode_published?: string;
+          last_episode_id?: string;
+        }>;
       }>(session, `/users/${userId}/shows`);
+
+      // If the connection has a show_id pinned in `meta`, prefer that;
+      // otherwise default to the first show on the account. This keeps the
+      // adapter usable when a single Captivate account hosts multiple shows
+      // (which is common — e.g. KM has TMMP plus a corporate show).
       const show = shows.shows?.[0];
       if (!show) return result;
       result.handle = show.title;
-      result.episodes = show.episodes;
+      result.episodes = show.episode_count;
+      result.profileUrl = `https://app.captivate.fm/episode-list/${show.id}`;
 
       const eps = await caFetch<{
         success: boolean;
@@ -85,27 +106,34 @@ export const captivate: PlatformAdapter = {
           id: string;
           title: string;
           published_date: string;
-          downloads_total?: number;
-          shows_url?: string;
+          episode_number?: number;
+          slug?: string;
         }>;
       }>(session, `/shows/${show.id}/episodes`);
 
       const all = eps.episodes || [];
-      const sorted = all
-        .filter((e) => typeof e.downloads_total === 'number')
-        .sort((a, b) => (b.downloads_total || 0) - (a.downloads_total || 0))
+
+      // Captivate's public API doesn't return download counts. Newest episodes
+      // are the best proxy for "what to highlight in the recap" without that
+      // data — we sort by publish date and show the most recent N.
+      const recent = [...all]
+        .sort(
+          (a, b) =>
+            Date.parse(b.published_date) - Date.parse(a.published_date)
+        )
         .slice(0, topN);
 
-      const total = all.reduce((s, e) => s + (e.downloads_total || 0), 0);
-      result.downloads = total;
-
-      result.topPosts = sorted.map<NormalizedPost>((e) => ({
+      result.topPosts = recent.map<NormalizedPost>((e) => ({
         externalId: e.id,
         title: e.title,
-        permalink: e.shows_url,
-        postedAt: e.published_date,
-        downloads: e.downloads_total
+        permalink: e.slug
+          ? `https://app.captivate.fm/episode/${e.slug}`
+          : undefined,
+        postedAt: e.published_date
       }));
+
+      // Leave `result.downloads` unset (null in DB). UI will show "—" and the
+      // Manual Snapshot form is the supported path for entering this number.
 
       result.raw = { shows: shows.shows, episodes: all };
     } catch (e) {
