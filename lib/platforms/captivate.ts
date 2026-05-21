@@ -87,6 +87,12 @@ export const captivate: PlatformAdapter = {
           last_episode_title?: string;
           last_episode_published?: string;
           last_episode_id?: string;
+          // Captivate also returns the show artwork and the show creation
+          // date on this payload. We persist them in `raw` so the dashboard
+          // can render a proper podcast hero + "show launched" tile without
+          // needing extra API calls.
+          artwork?: string;
+          created?: string;
         }>;
       }>(session, `/users/${userId}/shows`);
 
