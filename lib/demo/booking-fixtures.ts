@@ -207,6 +207,15 @@ export interface Idea {
   text: string;
 }
 
+/** A stored reminder row (distinct from the derived task `Reminder` below). */
+export interface ReminderEntry {
+  id: string;
+  title: string;
+  info?: string;
+  eventDate?: string; // ISO yyyy-mm-dd
+  reminderDate?: string; // ISO yyyy-mm-dd
+}
+
 /* ── The full demo dataset shape (what the provider persists) ──────────────── */
 
 export interface BookingData {
@@ -218,6 +227,7 @@ export interface BookingData {
   clips: VideoClip[];
   igIdeas: Idea[];
   podcastIdeas: Idea[];
+  reminders: ReminderEntry[];
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -601,7 +611,8 @@ export function seedData(): BookingData {
     scripts: structuredCloneSafe(DEMO_SCRIPTS),
     clips: structuredCloneSafe(DEMO_CLIPS),
     igIdeas: structuredCloneSafe(DEMO_IG_IDEAS),
-    podcastIdeas: structuredCloneSafe(DEMO_PODCAST_IDEAS)
+    podcastIdeas: structuredCloneSafe(DEMO_PODCAST_IDEAS),
+    reminders: []
   };
 }
 

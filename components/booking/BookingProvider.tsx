@@ -22,6 +22,7 @@ import {
   type ScriptCategory,
   type VideoClip,
   type Idea,
+  type ReminderEntry,
   type LocationKind
 } from '@/lib/demo/booking-fixtures';
 import type {
@@ -31,7 +32,8 @@ import type {
   OutreachContactRow,
   EmailScriptRow,
   VideoClipRow,
-  ContentIdeaRow
+  ContentIdeaRow,
+  ReminderRow
 } from '@/lib/supabase/types';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { GuestModal } from './GuestModal';
@@ -52,7 +54,8 @@ const EMPTY_DATA: BookingData = {
   scripts: [],
   clips: [],
   igIdeas: [],
-  podcastIdeas: []
+  podcastIdeas: [],
+  reminders: []
 };
 
 /* ── Row ↔ app mappers ──────────────────────────────────────────────────────
@@ -208,6 +211,16 @@ function rowToIdea(r: ContentIdeaRow): Idea {
   return { id: r.id, text: r.text ?? '' };
 }
 
+function rowToReminder(r: ReminderRow): ReminderEntry {
+  return {
+    id: r.id,
+    title: r.title ?? '',
+    info: r.info ?? undefined,
+    eventDate: r.event_date ?? undefined,
+    reminderDate: r.reminder_date ?? undefined
+  };
+}
+
 /* ── Context ──────────────────────────────────────────────────────────────── */
 
 interface GuestModalState {
@@ -311,13 +324,18 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
     }
   }, [supabase]);
 
+  const refetchReminders = useCallback(async () => {
+    const { data: rows } = await supabase.from('reminders').select('*');
+    if (rows) setData((d) => ({ ...d, reminders: rows.map(rowToReminder) }));
+  }, [supabase]);
+
   /* ── Initial load + realtime subscriptions ─────────────────────────────── */
 
   useEffect(() => {
     let active = true;
 
     (async () => {
-      const [guests, availability, travel, outreach, scripts, clips, ideas] =
+      const [guests, availability, travel, outreach, scripts, clips, ideas, reminders] =
         await Promise.all([
           supabase.from('booking_guests').select('*'),
           supabase.from('kyle_availability').select('*'),
@@ -325,7 +343,8 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
           supabase.from('outreach_contacts').select('*'),
           supabase.from('email_scripts').select('*'),
           supabase.from('video_clips').select('*'),
-          supabase.from('content_ideas').select('*')
+          supabase.from('content_ideas').select('*'),
+          supabase.from('reminders').select('*')
         ]);
 
       if (!active) return;
@@ -339,7 +358,8 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         scripts: (scripts.data ?? []).map(rowToScript),
         clips: (clips.data ?? []).map(rowToClip),
         igIdeas: ideaRows.filter((r) => r.kind === 'ig').map(rowToIdea),
-        podcastIdeas: ideaRows.filter((r) => r.kind === 'podcast').map(rowToIdea)
+        podcastIdeas: ideaRows.filter((r) => r.kind === 'podcast').map(rowToIdea),
+        reminders: (reminders.data ?? []).map(rowToReminder)
       });
       setHydrated(true);
     })();
@@ -367,6 +387,9 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'content_ideas' }, () => {
         void refetchIdeas();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reminders' }, () => {
+        void refetchReminders();
+      })
       .subscribe();
 
     return () => {
@@ -381,7 +404,8 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
     refetchOutreach,
     refetchScripts,
     refetchClips,
-    refetchIdeas
+    refetchIdeas,
+    refetchReminders
   ]);
 
   /* ── Write helpers (optimistic local update + targeted upsert/delete) ───── */

@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CalendarClock,
   Mic,
   MessageSquareReply,
   MapPin,
-  ArrowRight
+  ArrowRight,
+  Bell,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatCard, StatusPill, ProgressBar, Avatar } from '@/components/shell/primitives';
@@ -22,7 +24,8 @@ import {
   dateOnly,
   daysUntil,
   type Reminder,
-  type Urgency
+  type Urgency,
+  type ReminderEntry
 } from '@/lib/demo/booking-fixtures';
 
 const URGENCY_STYLE: Record<Urgency, string> = {
@@ -85,6 +88,9 @@ export function TodayView() {
           label="Outreach replies"
         />
       </div>
+
+      {/* Upcoming reminders — front-and-center for the whole team */}
+      <RemindersCard />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Needs attention */}
@@ -187,6 +193,90 @@ export function TodayView() {
         </Panel>
       </div>
     </div>
+  );
+}
+
+function RemindersCard() {
+  const { data } = useBooking();
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const reminders = useMemo(
+    () =>
+      [...data.reminders].sort((a, b) =>
+        (a.reminderDate || '9999').localeCompare(b.reminderDate || '9999')
+      ),
+    [data.reminders]
+  );
+
+  function toggle(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  return (
+    <div className="mb-7 rounded-[16px] border border-mx-line bg-white p-5 shadow-card">
+      <div className="mb-4 flex items-center gap-2 border-b border-mx-line pb-3">
+        <Bell size={15} className="text-mx-amber" />
+        <span className="text-[14px] font-bold text-mx-title">Upcoming reminders</span>
+        <StatusPill tone="amber" className="ml-auto">
+          {reminders.length}
+        </StatusPill>
+      </div>
+
+      {reminders.length === 0 ? (
+        <p className="py-4 text-center text-[13px] text-mx-muted">No reminders yet.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {reminders.map((r) => (
+            <RemindersRow key={r.id} r={r} open={expanded.has(r.id)} onToggle={() => toggle(r.id)} />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function RemindersRow({
+  r,
+  open,
+  onToggle
+}: {
+  r: ReminderEntry;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const dateLabel = r.reminderDate
+    ? dateOnly(r.reminderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'No date';
+  return (
+    <li className="rounded-xl border border-mx-line bg-white">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-mx-lineSoft/60"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[14px] font-bold text-mx-title">{r.title || 'Untitled reminder'}</div>
+          <div className="text-[12px] text-mx-secondary">
+            Remind {dateLabel}
+            {r.eventDate && ` · event ${dateOnly(r.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+          </div>
+        </div>
+        {r.info && (
+          <ChevronDown
+            size={16}
+            className={cn('shrink-0 text-mx-muted transition-transform', open && 'rotate-180')}
+          />
+        )}
+      </button>
+      {open && r.info && (
+        <div className="whitespace-pre-line border-t border-mx-line px-3.5 py-3 text-[13px] leading-relaxed text-mx-body">
+          {r.info}
+        </div>
+      )}
+    </li>
   );
 }
 
