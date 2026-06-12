@@ -44,10 +44,18 @@ export function GuestModal() {
     ? data.guests.find((g) => g.id === guestModal.editId)
     : null;
 
+  const requireDate = guestModal.requireDate ?? false;
+
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [error, setError] = useState<string | null>(null);
+  // Shown on the Schedule path when date/time are missing: offer to keep
+  // editing, save as Pending (no date), or discard.
+  const [pendingPrompt, setPendingPrompt] = useState(false);
 
   useEffect(() => {
     if (!guestModal.open) return;
+    setError(null);
+    setPendingPrompt(false);
     if (editing) {
       setForm({
         name: editing.name,
@@ -69,12 +77,12 @@ export function GuestModal() {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
-  function submit() {
+  function persist(recordingDate: string, recordingTime: string) {
     const base = {
-      name: form.name.trim() || 'New Guest',
+      name: form.name.trim(),
       email: form.email.trim(),
-      recordingDate: form.recordingDate || '2026-06-30',
-      recordingTime: form.recordingTime || '10:00',
+      recordingDate,
+      recordingTime,
       duration: Number(form.duration) || 90,
       episode: form.episode ? Number(form.episode) : undefined,
       location: form.location,
@@ -95,6 +103,30 @@ export function GuestModal() {
     closeGuestModal();
   }
 
+  function submit() {
+    if (!form.name.trim()) return setError('Please enter the guest’s full name.');
+    const hasDate = !!form.recordingDate;
+    const hasTime = !!form.recordingTime;
+
+    if (hasDate && hasTime) {
+      return persist(form.recordingDate, form.recordingTime);
+    }
+
+    if (requireDate) {
+      // Schedule: can't place a guest without a date + time. Offer choices.
+      setError(null);
+      setPendingPrompt(true);
+      return;
+    }
+
+    // Bookings / Today: a dateless guest is allowed as Pending. Keep data
+    // clean by requiring date and time together (or neither).
+    if (hasDate !== hasTime) {
+      return setError('Add both a date and a time, or leave both blank to save as Pending.');
+    }
+    persist('', '');
+  }
+
   return (
     <Dialog open={guestModal.open} onOpenChange={(o) => !o && closeGuestModal()}>
       <DialogContent
@@ -108,7 +140,9 @@ export function GuestModal() {
           <DialogDescription className="text-[13.5px] text-mx-secondary">
             {editing
               ? 'Update guest details — changes save and sync to the team.'
-              : 'New guests start as Pending until confirmed.'}
+              : requireDate
+                ? 'A date + time are needed to place this guest on the schedule.'
+                : 'New guests start as Pending until confirmed. Leave the date blank to save as Pending.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,10 +153,10 @@ export function GuestModal() {
           <Field label="Email" className="col-span-2">
             <Input value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="jane@example.com" className="bg-white" />
           </Field>
-          <Field label="Recording date" required>
+          <Field label="Recording date" required={requireDate}>
             <Input type="date" value={form.recordingDate} onChange={(e) => set('recordingDate', e.target.value)} className="bg-white" />
           </Field>
-          <Field label="Recording time" required>
+          <Field label="Recording time" required={requireDate}>
             <Input type="time" value={form.recordingTime} onChange={(e) => set('recordingTime', e.target.value)} className="bg-white" />
           </Field>
           <Field label="Duration (min)">
@@ -160,14 +194,50 @@ export function GuestModal() {
           </Field>
         </div>
 
-        <DialogFooter className="mt-6 gap-2">
-          <Button variant="ghost" onClick={closeGuestModal} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">
-            Cancel
-          </Button>
-          <Button onClick={submit} className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep">
-            {editing ? 'Save changes' : 'Add Guest'}
-          </Button>
-        </DialogFooter>
+        {error && !pendingPrompt && (
+          <p className="mt-4 text-[12.5px] font-semibold text-mx-red">{error}</p>
+        )}
+
+        {pendingPrompt ? (
+          <div className="mt-5 rounded-xl border border-mx-line bg-mx-lineSoft/60 p-4">
+            <p className="text-[13px] font-bold text-mx-title">No date &amp; time set</p>
+            <p className="mt-1 text-[12.5px] text-mx-secondary">
+              This guest can’t be placed on the schedule without a recording date and time.
+              You can keep editing, save them to Bookings as Pending, or discard.
+            </p>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={closeGuestModal}
+                className="h-[38px] rounded-lg px-4 font-bold text-mx-body"
+              >
+                Discard
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setPendingPrompt(false)}
+                className="h-[38px] rounded-lg border border-mx-field px-4 font-bold text-mx-body"
+              >
+                Keep editing
+              </Button>
+              <Button
+                onClick={() => persist('', '')}
+                className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep"
+              >
+                Save as Pending
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <DialogFooter className="mt-6 gap-2">
+            <Button variant="ghost" onClick={closeGuestModal} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">
+              Cancel
+            </Button>
+            <Button onClick={submit} className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep">
+              {editing ? 'Save changes' : 'Add Guest'}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

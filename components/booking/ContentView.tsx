@@ -159,21 +159,29 @@ function AddClipModal({ open, onClose }: { open: boolean; onClose: () => void })
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [driveNumber, setDriveNumber] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  function close() {
+    setError(null);
+    onClose();
+  }
 
   function submit() {
+    if (!title.trim()) return setError('Please enter a clip title.');
+    if (!date) return setError('Please choose a date.');
     addClip({
-      title: title.trim() || 'Untitled clip',
-      date: date || new Date().toISOString().slice(0, 10),
+      title: title.trim(),
+      date,
       driveNumber: driveNumber.trim() || 'KM-0000',
       edited: false,
       posted: false
     });
     setTitle(''); setDate(''); setDriveNumber('');
-    onClose();
+    close();
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => !o && close()}>
       <DialogContent
         className="max-w-[440px] bg-white text-mx-title"
         style={{ maxHeight: '85vh', overflowY: 'auto' }}
@@ -197,8 +205,9 @@ function AddClipModal({ open, onClose }: { open: boolean; onClose: () => void })
             </label>
           </div>
         </div>
+        {error && <p className="mt-4 text-[12.5px] font-semibold text-mx-red">{error}</p>}
         <DialogFooter className="mt-5 gap-2">
-          <Button variant="ghost" onClick={onClose} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
+          <Button variant="ghost" onClick={close} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
           <Button onClick={submit} className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep">Add Clip</Button>
         </DialogFooter>
       </DialogContent>

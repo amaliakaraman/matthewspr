@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { Plus, Upload, Download } from 'lucide-react';
 import { Button } from '@matthewsreis/ui/button';
 import { useBooking } from './BookingProvider';
@@ -8,6 +9,10 @@ import { useBooking } from './BookingProvider';
 export function HeaderActions() {
   const { openAddGuest, exportData, importData } = useBooking();
   const fileRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
+  // On the Schedule page a guest needs a date + time to be placed on the
+  // calendar; everywhere else a dateless Pending guest is allowed.
+  const requireDate = pathname?.startsWith('/schedule') ?? false;
 
   return (
     <div className="flex items-center gap-2">
@@ -37,7 +42,7 @@ export function HeaderActions() {
         <Download size={15} /> Export
       </button>
       <Button
-        onClick={openAddGuest}
+        onClick={() => openAddGuest({ requireDate })}
         className="h-[38px] gap-2 rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep"
       >
         <Plus size={16} /> Add Guest

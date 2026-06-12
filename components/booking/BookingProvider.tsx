@@ -226,6 +226,10 @@ function rowToReminder(r: ReminderRow): ReminderEntry {
 interface GuestModalState {
   open: boolean;
   editId?: string;
+  // When true (e.g. adding from the Schedule), date + time are required to
+  // place the guest on the calendar. When false (Bookings/Today), a guest may
+  // be saved with no date as Pending.
+  requireDate?: boolean;
 }
 
 interface BookingContextValue {
@@ -253,7 +257,7 @@ interface BookingContextValue {
   addIgIdea: (text: string) => void;
   addPodcastIdea: (text: string) => void;
   // guest modal
-  openAddGuest: () => void;
+  openAddGuest: (opts?: { requireDate?: boolean }) => void;
   openEditGuest: (id: string) => void;
   closeGuestModal: () => void;
   guestModal: GuestModalState;
@@ -603,7 +607,7 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         );
       },
 
-      openAddGuest: () => setGuestModal({ open: true }),
+      openAddGuest: (opts) => setGuestModal({ open: true, requireDate: opts?.requireDate }),
       openEditGuest: (id) => setGuestModal({ open: true, editId: id }),
       closeGuestModal: () => setGuestModal({ open: false }),
       guestModal,

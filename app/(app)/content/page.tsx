@@ -9,7 +9,7 @@ export default function ContentPage() {
     <>
       <PageHeader
         title="Content"
-        subtitle="KM social media"
+        subtitle="Social Media"
         actions={<HeaderActions />}
       />
       <ContentView />

@@ -137,9 +137,11 @@ function ContactModal({
   const [contactField, setContactField] = useState('');
   const [reachedOut, setReachedOut] = useState('');
   const [response, setResponse] = useState<OutreachResponse>('no_response');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setError(null);
     setName(contact?.name ?? '');
     setNote(contact?.note ?? '');
     setBusiness(contact?.business ?? '');
@@ -150,8 +152,9 @@ function ContactModal({
   }, [open, contact?.id]);
 
   function submit() {
+    if (!name.trim()) return setError('Please enter a name.');
     const payload = {
-      name: name.trim() || 'New Contact',
+      name: name.trim(),
       note: note.trim() || undefined,
       business: business.trim(),
       contact: contactField.trim(),
@@ -201,6 +204,7 @@ function ContactModal({
             />
           </Field>
         </div>
+        {error && <p className="mt-4 text-[12.5px] font-semibold text-mx-red">{error}</p>}
         <DialogFooter className="mt-5 gap-2 sm:justify-between">
           {contact ? (
             <Button

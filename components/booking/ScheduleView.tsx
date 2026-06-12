@@ -547,22 +547,31 @@ function AddTravelModal({ open, onClose }: { open: boolean; onClose: () => void 
   const [color, setColor] = useState('#6563EE');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  function close() {
+    setError(null);
+    onClose();
+  }
 
   function submit() {
+    if (!destination.trim()) return setError('Please enter a destination.');
+    if (!start) return setError('Please choose a start date.');
+    if (end && end < start) return setError('End date can’t be before the start date.');
     addTravel({
-      destination: destination.trim() || 'Travel',
+      destination: destination.trim(),
       color,
-      start: start || '2026-06-15',
-      end: end || start || '2026-06-15'
+      start,
+      end: end || start
     });
     setDestination('');
     setStart('');
     setEnd('');
-    onClose();
+    close();
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => !o && close()}>
       <DialogContent
         className="max-w-[460px] bg-white text-mx-title"
         style={{ maxHeight: '85vh', overflowY: 'auto' }}
@@ -586,8 +595,9 @@ function AddTravelModal({ open, onClose }: { open: boolean; onClose: () => void 
             </div>
           </FieldRow>
         </div>
+        {error && <p className="mt-4 text-[12.5px] font-semibold text-mx-red">{error}</p>}
         <DialogFooter className="mt-5 gap-2">
-          <Button variant="ghost" onClick={onClose} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
+          <Button variant="ghost" onClick={close} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
           <Button onClick={submit} className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep">Add Travel</Button>
         </DialogFooter>
       </DialogContent>
@@ -602,16 +612,27 @@ function AddAvailabilityModal({ open, onClose }: { open: boolean; onClose: () =>
   const [from, setFrom] = useState('08:00');
   const [until, setUntil] = useState('12:00');
   const [note, setNote] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  function submit() {
-    addAvailability({ date: date || '2026-06-16', kind, from, until, note: note.trim() || undefined });
-    setDate('');
-    setNote('');
+  function close() {
+    setError(null);
     onClose();
   }
 
+  function submit() {
+    if (!date) return setError('Please choose a date for this block.');
+    const timed = kind === 'morning' || kind === 'afternoon';
+    if (timed && from && until && until <= from) {
+      return setError('“Until” must be later than “From”.');
+    }
+    addAvailability({ date, kind, from, until, note: note.trim() || undefined });
+    setDate('');
+    setNote('');
+    close();
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => !o && close()}>
       <DialogContent
         className="max-w-[460px] bg-white text-mx-title"
         style={{ maxHeight: '85vh', overflowY: 'auto' }}
@@ -638,8 +659,9 @@ function AddAvailabilityModal({ open, onClose }: { open: boolean; onClose: () =>
           </div>
           <FieldRow label="Note (optional)"><Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Recording window" className="bg-white" /></FieldRow>
         </div>
+        {error && <p className="mt-4 text-[12.5px] font-semibold text-mx-red">{error}</p>}
         <DialogFooter className="mt-5 gap-2">
-          <Button variant="ghost" onClick={onClose} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
+          <Button variant="ghost" onClick={close} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
           <Button onClick={submit} className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep">Add Block</Button>
         </DialogFooter>
       </DialogContent>

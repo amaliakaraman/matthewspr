@@ -136,9 +136,11 @@ function ScriptModal({ open, script, onClose }: { open: boolean; script: EmailSc
   const [category, setCategory] = useState<ScriptCategory>('Outreach');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setError(null);
     setTitle(script?.title ?? '');
     setCategory(script?.category ?? 'Outreach');
     setSubject(script?.subject ?? '');
@@ -147,7 +149,8 @@ function ScriptModal({ open, script, onClose }: { open: boolean; script: EmailSc
   }, [open, script?.id]);
 
   function submit() {
-    const payload = { title: title.trim() || 'Untitled', category, subject: subject.trim(), body: body.trim() };
+    if (!title.trim()) return setError('Please enter a title.');
+    const payload = { title: title.trim(), category, subject: subject.trim(), body: body.trim() };
     if (script) updateScript(script.id, payload);
     else addScript(payload);
     onClose();
@@ -189,6 +192,7 @@ function ScriptModal({ open, script, onClose }: { open: boolean; script: EmailSc
             <Textarea value={body} onChange={(e) => setBody(e.target.value)} className="min-h-[160px] bg-white" />
           </label>
         </div>
+        {error && <p className="mt-4 text-[12.5px] font-semibold text-mx-red">{error}</p>}
         <DialogFooter className="mt-5 gap-2">
           <Button variant="ghost" onClick={onClose} className="h-[38px] rounded-lg px-4 font-bold text-mx-body">Cancel</Button>
           <Button onClick={submit} className="h-[38px] rounded-lg bg-mx-blue px-[18px] font-bold text-white hover:bg-mx-blueDeep">{script ? 'Save' : 'Add Script'}</Button>

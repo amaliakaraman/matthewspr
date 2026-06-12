@@ -7,11 +7,7 @@ export const metadata = { title: 'Today · Matthews PR' };
 export default function TodayPage() {
   return (
     <>
-      <PageHeader
-        title="Today"
-        subtitle="Triage — what needs you now"
-        actions={<HeaderActions />}
-      />
+      <PageHeader title="Today" actions={<HeaderActions />} />
       <TodayView />
     </>
   );
