@@ -94,22 +94,23 @@ export function TodayView() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Needs attention */}
+        {reminders.length > 0 && (
         <Panel
           title="Needs attention"
           icon={<AlertTriangle size={15} className="text-mx-red" />}
-          empty={reminders.length === 0 ? 'Nothing urgent — all deadlines clear.' : undefined}
           href="/bookings"
         >
           {reminders.map((r) => (
             <ReminderRow key={`${r.guestId}-${r.taskId}`} r={r} />
           ))}
         </Panel>
+        )}
 
         {/* This week's recordings */}
+        {thisWeek.length > 0 && (
         <Panel
           title="This week's recordings"
           icon={<CalendarClock size={15} className="text-mx-blue" />}
-          empty={thisWeek.length === 0 ? 'No recordings in the next 7 days.' : undefined}
           href="/schedule"
         >
           {thisWeek.map(({ g, d }) => {
@@ -144,12 +145,13 @@ export function TodayView() {
             );
           })}
         </Panel>
+        )}
 
         {/* Conflicts */}
+        {conflicts.length > 0 && (
         <Panel
           title="Conflicts"
           icon={<AlertTriangle size={15} className="text-mx-red" />}
-          empty={conflicts.length === 0 ? 'No scheduling conflicts detected.' : undefined}
           href="/bookings"
         >
           {conflicts.map(({ g, c }) => (
@@ -168,12 +170,13 @@ export function TodayView() {
             </Link>
           ))}
         </Panel>
+        )}
 
         {/* Recent outreach replies */}
+        {replies.length > 0 && (
         <Panel
           title="Recent outreach replies"
           icon={<MessageSquareReply size={15} className="text-mx-green" />}
-          empty={replies.length === 0 ? 'No new replies.' : undefined}
           href="/outreach"
         >
           {replies.map((o) => (
@@ -191,6 +194,7 @@ export function TodayView() {
             </Link>
           ))}
         </Panel>
+        )}
       </div>
     </div>
   );

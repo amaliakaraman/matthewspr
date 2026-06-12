@@ -227,12 +227,16 @@ function GuestCard({
   onClick: () => void;
 }) {
   const meta = STAGE_META[stage];
-  const dt = dateOnly(guest.recordingDate);
-  const dateLabel = dt.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  });
+  const dateLabel = guest.recordingDate
+    ? dateOnly(guest.recordingDate).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      })
+    : 'No Date';
+  const subMeta = [dateLabel, formatTime(guest.recordingTime), `${guest.duration}m`]
+    .filter(Boolean)
+    .join(' · ');
   const done = doneCount(guest);
 
   return (
@@ -259,9 +263,7 @@ function GuestCard({
               <span className="shrink-0 text-[12px] font-semibold text-mx-muted">Ep. {guest.episode}</span>
             )}
           </div>
-          <p className="mt-0.5 text-[12.5px] text-mx-secondary">
-            {dateLabel} · {formatTime(guest.recordingTime)} · {guest.duration}m
-          </p>
+          <p className="mt-0.5 text-[12.5px] text-mx-secondary">{subMeta}</p>
         </div>
         <ProgressRing value={done} max={12} size={40} tone={done === 12 ? 'green' : 'blue'} />
       </div>

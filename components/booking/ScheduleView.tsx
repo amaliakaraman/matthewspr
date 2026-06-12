@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Plane, Sun, Plus, AlertTriangle, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plane, Sun, AlertTriangle, ChevronDown } from 'lucide-react';
 import { Button } from '@matthewsreis/ui/button';
 import { Input } from '@matthewsreis/ui/input';
 import {
@@ -136,12 +136,6 @@ function MonthNav({
         >
           <ChevronRight size={16} />
         </button>
-        <button
-          onClick={() => setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
-          className="ml-1 inline-flex h-9 items-center rounded-lg border border-mx-field bg-white px-3 text-[12.5px] font-bold text-mx-body hover:border-mx-fieldHover"
-        >
-          Today
-        </button>
       </div>
       {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
     </div>
@@ -186,6 +180,11 @@ function GuestCalendar() {
   return (
     <div>
       <MonthNav cursor={cursor} setCursor={setCursor} />
+
+      <div className="mb-4 flex flex-wrap items-center gap-4 text-[12px] font-medium text-mx-secondary">
+        <LegendDot color="#15171C" label="Recording" />
+        <LegendDot color="#D82F2F" label="Conflict" />
+      </div>
 
       <div className="overflow-hidden rounded-[16px] border border-mx-line bg-white shadow-card">
         <WeekdayHeader />
@@ -244,11 +243,6 @@ function GuestCalendar() {
             );
           })}
         </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-[12px] font-medium text-mx-secondary">
-        <LegendDot color="#15171C" label="Recording" />
-        <LegendDot color="#D82F2F" label="Conflict" />
       </div>
 
       <GuestDrawer guestId={selected} onClose={() => setSelected(null)} />
@@ -333,23 +327,26 @@ function KyleCalendar({
         right={
           <>
             <button
+              type="button"
               onClick={() => setShowSummaries((v) => !v)}
               className="inline-flex h-[38px] items-center gap-1.5 rounded-lg border border-mx-field bg-white px-3 text-[12.5px] font-bold text-mx-body hover:border-mx-fieldHover"
             >
               <ChevronDown size={14} className={cn('transition-transform', showSummaries && 'rotate-180')} /> Lists
             </button>
-            <Button
+            <button
+              type="button"
               onClick={onAddAvailability}
-              className="h-[38px] gap-1.5 rounded-lg bg-mx-blue px-3.5 font-bold text-white hover:bg-mx-blueDeep"
+              className="inline-flex h-[38px] items-center gap-1.5 rounded-lg border border-mx-field bg-white px-3.5 text-[13px] font-bold text-mx-body hover:border-mx-fieldHover"
             >
-              <Sun size={15} /> Add Availability
-            </Button>
-            <Button
+              <Sun size={15} className="text-mx-blue" /> Add Availability
+            </button>
+            <button
+              type="button"
               onClick={onAddTravel}
-              className="h-[38px] gap-1.5 rounded-lg border border-mx-field bg-white px-3.5 font-bold text-mx-body hover:border-mx-fieldHover"
+              className="inline-flex h-[38px] items-center gap-1.5 rounded-lg border border-mx-field bg-white px-3.5 text-[13px] font-bold text-mx-body hover:border-mx-fieldHover"
             >
-              <Plane size={15} /> Add Travel
-            </Button>
+              <Plane size={15} className="text-mx-link" /> Add Travel
+            </button>
           </>
         }
       />
@@ -383,6 +380,16 @@ function KyleCalendar({
           </SummaryList>
         </div>
       )}
+
+      {/* Legend mirrors the fills — placed above the calendar */}
+      <div className="mb-4 flex flex-wrap items-center gap-4 text-[12px] font-medium text-mx-secondary">
+        <LegendSwatch fill={AM_FILL} label="Morning" />
+        <LegendSwatch fill={PM_FILL} label="Afternoon" />
+        <LegendSwatch fill={ALL_FILL} label="All day" />
+        <LegendSwatch fill={NA_FILL} label="Not available" />
+        <LegendDot color="#15171C" label="Recording" />
+        <LegendDot color="#D82F2F" label="Conflict" />
+      </div>
 
       <div className="overflow-hidden rounded-[16px] border border-mx-line bg-white shadow-card">
         <WeekdayHeader />
@@ -486,15 +493,6 @@ function KyleCalendar({
         </div>
       </div>
 
-      {/* Legend mirrors the fills */}
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-[12px] font-medium text-mx-secondary">
-        <LegendSwatch fill={AM_FILL} label="Morning" />
-        <LegendSwatch fill={PM_FILL} label="Afternoon" />
-        <LegendSwatch fill={ALL_FILL} label="All day" />
-        <LegendSwatch fill={NA_FILL} label="Not available" />
-        <LegendDot color="#15171C" label="Recording" />
-        <LegendDot color="#D82F2F" label="Conflict" />
-      </div>
     </div>
   );
 }

@@ -87,12 +87,21 @@ function DrawerBody({
   const stage = deriveStatus(guest);
   const conflicts = getConflicts(guest, availability);
   const meta = STAGE_META[stage];
-  const dt = dateOnly(guest.recordingDate);
-  const dateLabel = dt.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  });
+  const dateLabel = guest.recordingDate
+    ? dateOnly(guest.recordingDate).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      })
+    : 'No Date';
+  const subMeta = [
+    guest.episode != null ? `Ep. ${guest.episode}` : '',
+    dateLabel,
+    formatTime(guest.recordingTime),
+    `${guest.duration}m`
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const pre = TASKS.filter((t) => t.phase === 'pre');
   const post = TASKS.filter((t) => t.phase === 'post');
@@ -108,8 +117,7 @@ function DrawerBody({
               {guestName(guest)}
             </SheetTitle>
             <SheetDescription className="text-[13px] text-mx-secondary">
-              {guest.episode != null ? `Ep. ${guest.episode} · ` : ''}
-              {dateLabel} · {formatTime(guest.recordingTime)} · {guest.duration}m
+              {subMeta}
             </SheetDescription>
           </div>
           <StatusPill tone={meta.tone} dot>
