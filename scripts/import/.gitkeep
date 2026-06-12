@@ -1,0 +1,2 @@
+Place the exported booking data here as `podcast-dashboard-data.json`,
+then run: pnpm tsx scripts/import-booking-data.ts  (or: npm run import:booking)

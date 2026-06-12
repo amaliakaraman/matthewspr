@@ -178,6 +178,127 @@ export interface CronRun {
   results: Record<string, unknown>;
 }
 
+/* ── Booking tables (additive; flat access model, no org_id) ──────────────── */
+
+export interface BookingTasks {
+  done: string[];
+  fields: Record<string, string>;
+}
+
+export interface BookingGuestRow {
+  id: string;
+  name: string;
+  email: string | null;
+  episode: number | null;
+  recording_date: string | null;
+  recording_time: string | null;
+  duration: number | null;
+  location: string | null;
+  notes: string | null;
+  confirmed: boolean;
+  pending_reason: string | null;
+  pending_reason_other: string | null;
+  tasks: BookingTasks;
+  updated_at: string;
+}
+
+export interface KyleAvailabilityRow {
+  id: string;
+  date: string | null;
+  from_time: string | null;
+  until_time: string | null;
+  kind: string | null;
+  note: string | null;
+  updated_at: string;
+}
+
+export interface KyleTravelRow {
+  id: string;
+  destination: string | null;
+  color: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  updated_at: string;
+}
+
+export interface OutreachContactRow {
+  id: string;
+  name: string | null;
+  note: string | null;
+  business: string | null;
+  contact: string | null;
+  reached_out: string | null;
+  response: string | null;
+  updated_at: string;
+}
+
+export interface EmailScriptRow {
+  id: string;
+  title: string | null;
+  category: string | null;
+  body: string | null;
+  updated_at: string;
+}
+
+export interface VideoClipRow {
+  id: string;
+  title: string | null;
+  date: string | null;
+  drive: string | null;
+  edited: boolean | null;
+  posted: boolean | null;
+  updated_at: string;
+}
+
+export interface ContentIdeaRow {
+  id: string;
+  kind: string | null;
+  text: string | null;
+  color: string | null;
+  updated_at: string;
+}
+
+export interface PrLinkRow {
+  id: string;
+  label: string | null;
+  url: string | null;
+  updated_at: string;
+}
+
+export interface HotelContactRow {
+  id: string;
+  name: string | null;
+  role: string | null;
+  phone: string | null;
+  email: string | null;
+  updated_at: string;
+}
+
+export interface TravelTemplateRow {
+  id: string;
+  label: string | null;
+  body: string | null;
+  updated_at: string;
+}
+
+export interface ReminderRow {
+  id: string;
+  title: string | null;
+  info: string | null;
+  event_date: string | null;
+  reminder_date: string | null;
+  updated_at: string;
+}
+
+export interface PrOpportunityRow {
+  id: string;
+  title: string | null;
+  info: string | null;
+  date: string | null;
+  link: string | null;
+  updated_at: string;
+}
+
 /**
  * Minimal Database type — enough for Supabase client generic typing.
  * Replace with generated types in production.
@@ -219,6 +340,18 @@ export interface Database {
       org_invites: TableOf<OrgInvite>;
       org_members: TableOf<OrgMember>;
       cron_runs: TableOf<CronRun>;
+      booking_guests: TableOf<BookingGuestRow>;
+      kyle_availability: TableOf<KyleAvailabilityRow>;
+      kyle_travel: TableOf<KyleTravelRow>;
+      outreach_contacts: TableOf<OutreachContactRow>;
+      email_scripts: TableOf<EmailScriptRow>;
+      video_clips: TableOf<VideoClipRow>;
+      content_ideas: TableOf<ContentIdeaRow>;
+      pr_links: TableOf<PrLinkRow>;
+      hotel_contacts: TableOf<HotelContactRow>;
+      travel_templates: TableOf<TravelTemplateRow>;
+      reminders: TableOf<ReminderRow>;
+      pr_opportunities: TableOf<PrOpportunityRow>;
     };
     Views: Record<string, never>;
     Functions: {

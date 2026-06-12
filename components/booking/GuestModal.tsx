@@ -17,8 +17,7 @@ import { useBooking } from './BookingProvider';
 import type { Guest, LocationKind } from '@/lib/demo/booking-fixtures';
 
 interface FormState {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   recordingDate: string;
   recordingTime: string;
@@ -29,8 +28,7 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
-  firstName: '',
-  lastName: '',
+  name: '',
   email: '',
   recordingDate: '',
   recordingTime: '',
@@ -52,8 +50,7 @@ export function GuestModal() {
     if (!guestModal.open) return;
     if (editing) {
       setForm({
-        firstName: editing.firstName,
-        lastName: editing.lastName,
+        name: editing.name,
         email: editing.email || '',
         recordingDate: editing.recordingDate,
         recordingTime: editing.recordingTime,
@@ -74,8 +71,7 @@ export function GuestModal() {
 
   function submit() {
     const base = {
-      firstName: form.firstName.trim() || 'New',
-      lastName: form.lastName.trim() || 'Guest',
+      name: form.name.trim() || 'New Guest',
       email: form.email.trim(),
       recordingDate: form.recordingDate || '2026-06-30',
       recordingTime: form.recordingTime || '10:00',
@@ -108,17 +104,14 @@ export function GuestModal() {
           </DialogTitle>
           <DialogDescription className="text-[13.5px] text-mx-secondary">
             {editing
-              ? 'Update guest details (demo — saved to local state).'
-              : 'New guests start as Pending until confirmed. Demo — saved to local state.'}
+              ? 'Update guest details — changes save and sync to the team.'
+              : 'New guests start as Pending until confirmed.'}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4 grid grid-cols-2 gap-4">
-          <Field label="First name" required>
-            <Input value={form.firstName} onChange={(e) => set('firstName', e.target.value)} placeholder="Jane" className="bg-white" />
-          </Field>
-          <Field label="Last name" required>
-            <Input value={form.lastName} onChange={(e) => set('lastName', e.target.value)} placeholder="Doe" className="bg-white" />
+          <Field label="Full Name" required className="col-span-2">
+            <Input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Jane Doe" className="bg-white" />
           </Field>
           <Field label="Email" className="col-span-2">
             <Input value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="jane@example.com" className="bg-white" />

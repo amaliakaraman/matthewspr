@@ -41,7 +41,12 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 function initials(g: Guest): string {
-  return `${g.firstName[0] || ''}${g.lastName[0] || ''}`.toUpperCase();
+  return g.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('');
 }
 
 export function ScheduleView() {
@@ -169,7 +174,7 @@ export function ScheduleView() {
                             'flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10.5px] font-bold',
                             conflict ? 'bg-mx-redBg text-mx-red ring-1 ring-mx-red' : 'bg-mx-title text-white'
                           )}
-                          title={`${g.firstName} ${g.lastName} · ${formatTime(g.recordingTime)}`}
+                          title={`${g.name} · ${formatTime(g.recordingTime)}`}
                         >
                           {initials(g)} {formatTime(g.recordingTime).replace(':00', '')}
                         </div>

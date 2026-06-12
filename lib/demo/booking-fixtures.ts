@@ -87,8 +87,7 @@ export type DerivedStage = 'pending' | 'in_progress' | 'recorded' | 'completed';
 
 export interface Guest {
   id: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email?: string;
   episode?: number;
   recordingDate: string; // ISO yyyy-mm-dd
@@ -226,7 +225,7 @@ export interface BookingData {
    ════════════════════════════════════════════════════════════════════════════ */
 
 export function guestName(g: Guest): string {
-  return `${g.firstName} ${g.lastName}`.trim();
+  return g.name.trim();
 }
 
 /** Derived status — never set manually; stages are not draggable. */
@@ -399,8 +398,7 @@ export const DEMO_GUESTS: Guest[] = [
   // Completed
   {
     id: 'g-burcham',
-    firstName: 'Michael',
-    lastName: 'Burcham',
+    name: 'Michael Burcham',
     email: 'michael.burcham@example.com',
     episode: 98,
     recordingDate: '2026-06-05',
@@ -415,8 +413,7 @@ export const DEMO_GUESTS: Guest[] = [
   // Recorded (all PRE done, POST pending)
   {
     id: 'g-ricco',
-    firstName: 'Marc',
-    lastName: 'Ricco',
+    name: 'Marc Ricco',
     email: 'marc.ricco@example.com',
     episode: 101,
     recordingDate: '2026-06-20',
@@ -431,8 +428,7 @@ export const DEMO_GUESTS: Guest[] = [
   // In progress — today's recording, Nashville, availability conflict + printPrep due today
   {
     id: 'g-beeler',
-    firstName: 'Brad',
-    lastName: 'Beeler',
+    name: 'Brad Beeler',
     email: 'brad.beeler@example.com',
     episode: 103,
     recordingDate: '2026-06-12',
@@ -447,8 +443,7 @@ export const DEMO_GUESTS: Guest[] = [
   // In progress — away, within 7 days, googleForm/prepSheet undone (reminders fire)
   {
     id: 'g-smith',
-    firstName: 'Stephan',
-    lastName: 'Smith',
+    name: 'Stephan Smith',
     email: 'stephan@example.com',
     episode: 104,
     recordingDate: '2026-06-15',
@@ -463,8 +458,7 @@ export const DEMO_GUESTS: Guest[] = [
   // In progress — away, hotel conflict (checkout before recording)
   {
     id: 'g-chen',
-    firstName: 'Sarah',
-    lastName: 'Chen',
+    name: 'Sarah Chen',
     email: 'sarah.chen@example.com',
     episode: 105,
     recordingDate: '2026-06-18',
@@ -479,8 +473,7 @@ export const DEMO_GUESTS: Guest[] = [
   // In progress — nashville, minimal done
   {
     id: 'g-rivera',
-    firstName: 'Tom',
-    lastName: 'Rivera',
+    name: 'Tom Rivera',
     email: 'tom.rivera@example.com',
     episode: 106,
     recordingDate: '2026-06-29',
@@ -495,8 +488,7 @@ export const DEMO_GUESTS: Guest[] = [
   // Pending — with reason
   {
     id: 'g-liu',
-    firstName: 'Deb',
-    lastName: 'Liu',
+    name: 'Deb Liu',
     email: 'deb.liu@example.com',
     episode: 108,
     recordingDate: '2026-06-26',
@@ -512,8 +504,7 @@ export const DEMO_GUESTS: Guest[] = [
   // Pending — no reason yet
   {
     id: 'g-friedman',
-    firstName: 'Nick',
-    lastName: 'Friedman',
+    name: 'Nick Friedman',
     email: 'nick.friedman@example.com',
     episode: 109,
     recordingDate: '2026-07-01',
