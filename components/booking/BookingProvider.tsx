@@ -244,6 +244,8 @@ interface BookingContextValue {
   addTravel: (t: Omit<TravelRange, 'id'>) => void;
   // outreach / scripts / content
   addOutreach: (o: Omit<OutreachRow, 'id'>) => void;
+  updateOutreach: (id: string, patch: Partial<OutreachRow>) => void;
+  removeOutreach: (id: string) => void;
   addScript: (s: Omit<EmailScript, 'id'>) => void;
   updateScript: (id: string, patch: Partial<EmailScript>) => void;
   addClip: (c: Omit<VideoClip, 'id'>) => void;
@@ -477,6 +479,20 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         const row: OutreachRow = { ...o, id: uid('o') };
         setData((d) => ({ ...d, outreach: [row, ...d.outreach] }));
         void supabase.from('outreach_contacts').upsert(outreachToRow(row), { onConflict: 'id' });
+      },
+      updateOutreach: (id, patch) => {
+        const current = dataRef.current.outreach.find((o) => o.id === id);
+        if (!current) return;
+        const updated = { ...current, ...patch };
+        setData((d) => ({
+          ...d,
+          outreach: d.outreach.map((o) => (o.id === id ? updated : o))
+        }));
+        void supabase.from('outreach_contacts').upsert(outreachToRow(updated), { onConflict: 'id' });
+      },
+      removeOutreach: (id) => {
+        setData((d) => ({ ...d, outreach: d.outreach.filter((o) => o.id !== id) }));
+        void supabase.from('outreach_contacts').delete().eq('id', id);
       },
       addScript: (s) => {
         const script: EmailScript = { ...s, id: uid('s') };
