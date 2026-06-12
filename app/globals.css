@@ -2,116 +2,241 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Satoshi (Matthews design-system typeface) ───────────────────────────── */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi/Satoshi-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi/Satoshi-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi/Satoshi-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi/Satoshi-Black.otf') format('opentype');
+  font-weight: 800 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+/* ── Theme-independent design tokens (from @matthewsreis/ui) ──────────────── */
+:root {
+  --radius-xsmall: 0.25rem;
+  --radius-small: 0.375rem;
+  --radius-medium: 0.5rem;
+  --radius-large: 0.75rem;
+  --radius-extra-large: 1rem;
+  --modal-medium: 45rem;
+  --modal-small: 30rem;
+  --font-size-sm13: 0.8125rem;
+  --space-xxs: 0.125rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-xxl: 4rem;
+  --field-sm: 1.5rem;
+  --field-md: 2rem;
+  --field-lg: 2.5rem;
+  --button-xs: 1rem;
+  --button-sm: 1.5rem;
+  --button-md: 2rem;
+  --button-lg: 2.5rem;
+  --tab-sm: 2rem;
+  --tab-md: 2.5rem;
+  --tab-lg: 3.25rem;
+  --row-sm: 1.75rem;
+  --row-md: 2rem;
+  --row-lg: 2.5rem;
+  --row-xl: 3rem;
+  --row-xxl: 3.25rem;
+  --icon-xs: 0.5rem;
+  --icon-sm: 0.625rem;
+  --icon-md: 1rem;
+  --icon-lg: 1.25rem;
+  --icon-xl: 1.5rem;
+  --shadow-sm: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* ── Light theme palette (Artemis light values) ──────────────────────────── */
+:root,
+.light {
+  --primary-900: #223888ff;
+  --primary-800: #243dadff;
+  --primary-700: #264ad5ff;
+  --primary-600: #2f60e8ff;
+  --primary-500: #4380f3ff;
+  --primary-400: #66a3f8ff;
+  --primary-300: #96c4fbff;
+  --primary-200: #c1dafdff;
+  --primary-100: #eff6ffff;
+  --success-900: #052c22ff;
+  --success-800: #0e4e3bff;
+  --success-700: #115f46ff;
+  --success-600: #1d966aff;
+  --success-500: #29b982ff;
+  --success-400: #43d39aff;
+  --success-300: #75e7b8ff;
+  --success-200: #abf3d1ff;
+  --success-100: #ecfdf5ff;
+  --danger-900: #450b0bff;
+  --danger-800: #801c1eff;
+  --danger-700: #9c131aff;
+  --danger-600: #be0518ff;
+  --danger-500: #e3021eff;
+  --danger-400: #f6363fff;
+  --danger-300: #fd686bff;
+  --danger-200: #ffa3a4ff;
+  --danger-100: #fef2f2ff;
+  --zinc-900: #09090bff;
+  --zinc-800: #27272aff;
+  --zinc-700: #3f3f46ff;
+  --zinc-600: #71717aff;
+  --zinc-500: #a1a1aaff;
+  --zinc-400: #d4d4d8ff;
+  --zinc-300: #e4e4e7ff;
+  --zinc-200: #f4f4f5ff;
+  --zinc-100: #fafafaff;
+  --orange-900: #431408ff;
+  --orange-800: #7c2d13ff;
+  --orange-700: #9d310eff;
+  --orange-600: #c73b00ff;
+  --orange-500: #f15000ff;
+  --orange-400: #ff6d00ff;
+  --orange-300: #ff8c26ff;
+  --orange-200: #fed8aaff;
+  --orange-100: #fff7edff;
+  --indigo-900: #1f1a4aff;
+  --indigo-800: #322c80ff;
+  --indigo-700: #392da1ff;
+  --indigo-600: #5242e2ff;
+  --indigo-500: #6663eeff;
+  --indigo-400: #838af6ff;
+  --indigo-300: #a7b3faff;
+  --indigo-200: #c8d2fdff;
+  --indigo-100: #eef2ffff;
+  --sky-900: #14496dff;
+  --sky-800: #145884ff;
+  --sky-700: #16689fff;
+  --sky-600: #1d82c5ff;
+  --sky-500: #29a3e7ff;
+  --sky-400: #46bbf6ff;
+  --sky-300: #83d2faff;
+  --sky-200: #bce5fcff;
+  --sky-100: #f0f9ffff;
+  --teal-900: #062f2eff;
+  --teal-800: #124e4aff;
+  --teal-700: #085f5aff;
+  --teal-600: #00776fff;
+  --teal-500: #009689ff;
+  --teal-400: #00baa7ff;
+  --teal-300: #00d4bdff;
+  --teal-200: #55ecd4ff;
+  --teal-100: #f0fdfaff;
+  --violet-900: #2e0d64ff;
+  --violet-800: #4c1993ff;
+  --violet-700: #5b1cb4ff;
+  --violet-600: #7c35eaff;
+  --violet-500: #8b59f3ff;
+  --violet-400: #a78af8ff;
+  --violet-300: #c4b4fbff;
+  --violet-200: #ddd6fdff;
+  --violet-100: #ede9feff;
+  --yellow-900: #422108ff;
+  --yellow-800: #713f12ff;
+  --yellow-700: #874c06ff;
+  --yellow-600: #a46100ff;
+  --yellow-500: #ce8900ff;
+  --yellow-400: #eeb300ff;
+  --yellow-300: #fbc900ff;
+  --yellow-200: #fef18bff;
+  --yellow-100: #fffbebff;
+  --textcolor-disabled: #00000040;
+  --textcolor-secondary: #00000080;
+  --textcolor-primary: #000000cc;
+  --textcolor-title: #000000e6;
+  --default-link-accent: #2b77fcff;
+  --default-border: #e4e4e7ff;
+  --default-field-modal-border: #e4e4e7ff;
+  --default-foreground: #000000ff;
+  --default-muted-foreground: #00000040;
+  --default-background: #ffffffff;
+  --default-muted-background: #ffffff40;
+  --default-highlight: #ffffff00;
+  --default-card-bg: #ffffffff;
+  --default-card-header: #f4f4f5ff;
+  --default-indent: #f4f4f5ff;
+  --default-button-field-hover: #0000000a;
+  --shadow-focus: 0 0 0.25rem var(--primary-500);
+  --gradient-good: linear-gradient(90deg, rgba(15, 131, 135, 1) 0%, rgba(131, 198, 137, 1) 100%);
+  --gradient-progress: linear-gradient(90deg, rgba(127, 22, 214, 1) 0%, rgba(58, 224, 253, 1) 100%);
+  --gradient-secondary: linear-gradient(
+    90deg,
+    rgba(69, 52, 200, 1) 0%,
+    rgba(67, 128, 243, 1) 67.5%,
+    rgba(102, 163, 248, 1) 100%
+  );
+}
+
 @layer base {
-  html, body {
-    background: #070A1A;
-    color: #F8FAFF;
+  html {
+    background: #ffffff;
+    color: #15171c;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: #ffffff;
+    color: #15171c;
   }
 }
 
 @layer components {
-  .btn-prim {
-    @apply bg-gradient-to-br from-[#0EA5E9] to-[#7C3AED] text-white;
-    box-shadow: 0 8px 24px rgba(14,165,233,.3);
-    transition: all .2s;
-  }
-  .btn-prim:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(14,165,233,.45);
-  }
+  /* Legacy helpers from the old dark theme, repointed to the light brand so
+     analytics surfaces that haven't been fully reskinned still read cleanly. */
   .glass {
-    @apply border border-white/[.07] bg-white/[.035] backdrop-blur-xl;
+    @apply border border-mx-line bg-white;
   }
   .text-gradient {
-    background: linear-gradient(180deg,#fff 0%,#94A3B8 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #15171c;
   }
   .text-rainbow {
-    background: linear-gradient(135deg,#38BDF8 0%,#E1306C 50%,#F59E0B 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #4380f3;
+  }
+  .btn-prim {
+    @apply bg-mx-blue text-white;
+    box-shadow: 0 1px 2px rgba(47, 96, 232, 0.25);
+    transition: all 0.12s ease;
+  }
+  .btn-prim:hover {
+    @apply bg-mx-blueDeep;
   }
 }
 
-/* ── Aurora backdrop ── */
-.aurora {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.aurora::before,
-.aurora::after {
-  content: '';
-  position: absolute;
-  width: 80vw;
-  height: 80vw;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.55;
-  mix-blend-mode: screen;
-  animation: aurora 22s ease-in-out infinite;
-}
-.aurora::before {
-  background: radial-gradient(circle, #0EA5E9 0%, transparent 60%);
-  top: -30vw;
-  left: -20vw;
-}
-.aurora::after {
-  background: radial-gradient(circle, #7C3AED 0%, transparent 60%);
-  bottom: -30vw;
-  right: -20vw;
-  animation-delay: -11s;
-}
-.aurora .blob3 {
-  position: absolute;
-  width: 60vw;
-  height: 60vw;
-  border-radius: 50%;
-  background: radial-gradient(circle, #E1306C 0%, transparent 60%);
-  filter: blur(140px);
-  opacity: 0.35;
-  mix-blend-mode: screen;
-  top: 40vh;
-  left: 30vw;
-  animation: aurora 28s ease-in-out infinite reverse;
-}
-
-.grid-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-}
-
-.noise {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-}
-
-/* Recap pages */
+/* Recap pages keep a neutral serif-free body for print */
 .recap-page {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
 @media print {
-  .aurora, .grid-overlay, .noise, header, aside, nav, .no-print {
+  aside,
+  nav,
+  .no-print {
     display: none !important;
   }
   body {
@@ -124,7 +249,10 @@
   }
 }
 
-/* Recharts text */
+/* Recharts axis text → muted brand color */
 .recharts-text {
-  fill: #6B7596 !important;
+  fill: #8a909a !important;
+}
+.recharts-cartesian-grid line {
+  stroke: #eceef1;
 }

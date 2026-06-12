@@ -15,7 +15,7 @@ export function AccountSwitcher({
   const params = useSearchParams();
 
   return (
-    <div className="mb-6 inline-flex gap-1 rounded-[11px] border border-white/[.07] bg-white/[.035] p-1.5 backdrop-blur-xl">
+    <div className="mb-6 inline-flex gap-1 rounded-[11px] border border-mx-line bg-mx-lineSoft p-1.5">
       {accounts.map((a) => {
         const isActive = a.id === active;
         const next = new URLSearchParams(params);
@@ -25,18 +25,18 @@ export function AccountSwitcher({
             key={a.id}
             href={`${path}?${next.toString()}`}
             className={cn(
-              'flex items-center gap-2.5 rounded-md px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.05em] transition-colors',
+              'flex items-center gap-2.5 rounded-md px-4 py-2 text-[13px] font-bold transition-colors',
               isActive
-                ? 'bg-white/10 text-ink shadow-[inset_0_0_0_1px_rgba(255,255,255,.13)]'
-                : 'text-ink-dim hover:text-ink'
+                ? 'bg-white text-mx-title shadow-card'
+                : 'text-mx-secondary hover:text-mx-title'
             )}
           >
             <span
               className={cn(
                 'rounded px-1.5 py-[2px] text-[9px] font-bold tracking-[0.08em]',
                 isActive
-                  ? 'bg-white/15 text-white'
-                  : 'bg-brand-sky/15 text-brand-sky'
+                  ? 'bg-mx-blue text-white'
+                  : 'bg-[rgba(67,128,243,0.12)] text-mx-blueDeep'
               )}
             >
               {a.tag}

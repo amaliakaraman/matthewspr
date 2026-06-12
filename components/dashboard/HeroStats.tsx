@@ -11,26 +11,26 @@ export interface HeroAccountStat {
 
 export function HeroStats({ accounts }: { accounts: HeroAccountStat[] }) {
   return (
-    <div className="flex gap-3.5">
+    <div className="flex gap-3">
       {accounts.map((a) => (
         <div
           key={a.label}
-          className="min-w-[130px] rounded-xl border border-white/[.07] bg-white/[.035] px-5 py-3.5 backdrop-blur-xl"
+          className="min-w-[140px] rounded-[14px] border border-mx-line bg-white px-5 py-3.5 shadow-card"
         >
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
             {a.label}
           </div>
-          <div className="mt-1.5 font-display text-[28px] font-bold tracking-tight text-gradient">
+          <div className="mt-1.5 text-[28px] font-black leading-none tracking-tight text-mx-title">
             {formatNum(a.followers)}
           </div>
           <div
             className={
-              'mt-1 text-[11px] font-semibold ' +
+              'mt-1.5 text-[11.5px] font-bold ' +
               (a.growth > 0
-                ? 'text-emerald-400'
+                ? 'text-mx-green'
                 : a.growth < 0
-                ? 'text-rose-400'
-                : 'text-ink-mute')
+                ? 'text-mx-red'
+                : 'text-mx-muted')
             }
           >
             {a.growth >= 0 ? '+' : ''}

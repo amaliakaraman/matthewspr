@@ -13,7 +13,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       ref={ref}
       className={cn(
-        'w-full rounded-md border border-white/10 bg-white/[.04] px-3 py-2 text-sm text-ink placeholder-white/30 outline-none focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/20',
+        'w-full rounded-lg border border-mx-field bg-white px-3.5 py-2.5 text-sm text-mx-title placeholder-mx-muted outline-none transition-shadow hover:border-mx-fieldHover focus:border-mx-blue focus:ring-[3px] focus:ring-[rgba(67,128,243,0.14)]',
         className
       )}
       {...rest}
@@ -22,7 +22,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   if (!label) return field;
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-mute">
+      <span className="mb-1.5 block text-[13px] font-bold text-mx-title">
         {label}
       </span>
       {field}

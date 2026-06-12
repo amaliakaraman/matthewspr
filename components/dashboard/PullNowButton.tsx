@@ -41,7 +41,7 @@ export function PullNowButton({
     return (
       <a
         href={`/api/platforms/${platform}/connect?account_id=${accountId}`}
-        className="rounded-xl border border-white/10 bg-white/[.04] px-4 py-2.5 text-xs font-semibold text-ink-dim hover:bg-white/10"
+        className="rounded-lg border border-mx-field bg-white px-4 py-2.5 text-[12.5px] font-bold text-mx-body hover:border-mx-fieldHover"
       >
         Connect platform →
       </a>
@@ -53,7 +53,7 @@ export function PullNowButton({
       onClick={pull}
       disabled={busy}
       className={cn(
-        'btn-prim rounded-xl px-4 py-2.5 text-xs font-semibold transition-all',
+        'rounded-lg bg-mx-blue px-4 py-2.5 text-[12.5px] font-bold text-white shadow-glow transition-all hover:bg-mx-blueDeep',
         busy && 'opacity-60'
       )}
     >

@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 type BadgeTone = 'neutral' | 'good' | 'bad' | 'info' | 'warn';
 
 const toneClasses: Record<BadgeTone, string> = {
-  neutral: 'bg-white/10 text-ink-mute',
-  good: 'bg-emerald-500/10 text-emerald-300',
-  bad: 'bg-rose-500/10 text-rose-300',
-  info: 'bg-brand-sky/15 text-brand-sky',
-  warn: 'bg-amber-500/15 text-amber-300'
+  neutral: 'bg-mx-lineSoft text-mx-secondary',
+  good: 'bg-mx-greenBg text-mx-green',
+  bad: 'bg-mx-redBg text-mx-red',
+  info: 'bg-[rgba(67,128,243,0.12)] text-mx-blueDeep',
+  warn: 'bg-mx-amberBg text-mx-amber'
 };
 
 export function Badge({

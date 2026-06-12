@@ -23,33 +23,30 @@ export function MetricsRow({
   period: string;
   accountLabel: string;
 }) {
-  const cards: Array<{ label: string; value: string; sub: string; color: string }> = [
+  const cards: Array<{ label: string; value: string; sub: string; accent: string }> = [
     {
       label: 'Largest audience',
       value: formatNum(largestAudience),
       sub: largestAudienceLabel || `across ${activePlatforms} active platforms`,
-      color: '#38BDF8'
+      accent: 'bg-mx-blue'
     },
     {
       label: `Growth · ${period}`,
       value: `${growth >= 0 ? '+' : ''}${formatNum(growth)}`,
-      sub:
-        growth >= 0
-          ? 'new followers gained'
-          : 'net follower change',
-      color: '#34D399'
+      sub: growth >= 0 ? 'new followers gained' : 'net follower change',
+      accent: 'bg-mx-green'
     },
     {
       label: 'Cross-platform footprint',
       value: formatNum(footprint),
       sub: `${accountLabel} · sum of platform audiences (overlap included)`,
-      color: '#7C3AED'
+      accent: 'bg-[#6563EE]'
     },
     {
-      label: 'Active Platforms',
+      label: 'Active platforms',
       value: `${activePlatforms} / ${totalPlatforms}`,
-      sub: activePlatforms === totalPlatforms ? 'all connected' : 'connect more →',
-      color: '#F59E0B'
+      sub: activePlatforms === totalPlatforms ? 'all connected' : 'connect more',
+      accent: 'bg-mx-amber'
     }
   ];
   return (
@@ -57,19 +54,19 @@ export function MetricsRow({
       {cards.map((c) => (
         <div
           key={c.label}
-          className="relative overflow-hidden rounded-[14px] border border-white/[.07] bg-white/[.035] p-5 backdrop-blur-xl"
+          className="relative overflow-hidden rounded-[14px] border border-mx-line bg-white p-5 pl-6 shadow-card"
         >
-          <div
-            className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full opacity-40 blur-2xl"
-            style={{ background: c.color }}
+          <span
+            className={`absolute left-0 top-0 h-full w-1 ${c.accent}`}
+            aria-hidden
           />
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
             {c.label}
           </div>
-          <div className="mt-2 font-display text-3xl font-bold tracking-tight text-gradient">
+          <div className="mt-2 text-[30px] font-black leading-none tracking-tight text-mx-title">
             {c.value}
           </div>
-          <div className="mt-1 text-[11px] text-ink-mute">{c.sub}</div>
+          <div className="mt-1.5 text-[11.5px] text-mx-secondary">{c.sub}</div>
         </div>
       ))}
     </div>

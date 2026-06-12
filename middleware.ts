@@ -30,9 +30,14 @@ export async function middleware(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Gate /dashboard behind auth
+  // Gate the app UI behind auth
   const path = req.nextUrl.pathname;
-  if (!user && (path.startsWith('/dashboard') || path === '/')) {
+  const GATED = ['/bookings', '/schedule', '/outreach', '/library', '/content'];
+  const isGated =
+    path === '/' ||
+    path.startsWith('/dashboard') ||
+    GATED.some((p) => path === p || path.startsWith(`${p}/`));
+  if (!user && isGated) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
   if (user && path === '/login') {
@@ -46,5 +51,14 @@ export const config = {
   // Only gate the UI shell. API routes authenticate themselves; running
   // supabase.auth.getUser() on every API request just doubles latency for no
   // benefit.
-  matcher: ['/', '/dashboard/:path*', '/login']
+  matcher: [
+    '/',
+    '/dashboard/:path*',
+    '/bookings/:path*',
+    '/schedule/:path*',
+    '/outreach/:path*',
+    '/library/:path*',
+    '/content/:path*',
+    '/login'
+  ]
 };

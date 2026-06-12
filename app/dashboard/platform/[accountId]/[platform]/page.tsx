@@ -1,5 +1,4 @@
 import { supabaseServer } from '@/lib/supabase/server';
-import { TopBar } from '@/components/layout/TopBar';
 import { PlatformIcon } from '@/components/dashboard/PlatformIcon';
 import { PLATFORM_META } from '@/lib/platforms';
 import { GrowthChart, type GrowthPoint } from '@/components/charts/GrowthChart';
@@ -87,39 +86,37 @@ export default async function PlatformPage({
   const captivateShow = captivateRaw?.shows?.[0];
 
   return (
-    <main className="pb-20">
-      <TopBar user={user} />
-
-      <div className="px-9 pt-4">
+    <main className="px-12 pb-20 pt-7">
+      <div>
         <Link
           href={`/dashboard?acct=${account.id}`}
-          className="text-xs text-ink-mute hover:text-ink"
+          className="text-[12.5px] font-semibold text-mx-muted hover:text-mx-title"
         >
           ← {account.label}
         </Link>
 
-        <div className="mt-5 flex items-center justify-between">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-5">
             {captivateShow?.artwork ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={captivateShow.artwork}
                 alt={captivateShow.title}
-                className="h-16 w-16 rounded-[18px] object-cover shadow-[0_12px_30px_rgba(0,0,0,.45)]"
+                className="h-16 w-16 rounded-[18px] object-cover shadow-card"
               />
             ) : (
               <div
-                className="flex h-16 w-16 items-center justify-center rounded-[18px] text-white shadow-[0_12px_30px_rgba(0,0,0,.45)]"
+                className="flex h-16 w-16 items-center justify-center rounded-[18px] text-white shadow-glow"
                 style={{ background: gradient }}
               >
                 <PlatformIcon kind={platform} className="h-7 w-7" />
               </div>
             )}
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
                 {account.tag} · {meta.name}
               </div>
-              <h1 className="font-display text-4xl font-bold tracking-tight">
+              <h1 className="text-[32px] font-bold tracking-tight text-mx-title">
                 {connection?.handle || meta.name}
               </h1>
               {connection?.profile_url && (
@@ -127,7 +124,7 @@ export default async function PlatformPage({
                   href={connection.profile_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-ink-dim hover:text-ink"
+                  className="text-[12.5px] text-mx-link hover:underline"
                 >
                   {connection.profile_url} ↗
                 </a>
@@ -137,7 +134,7 @@ export default async function PlatformPage({
           <div className="flex gap-2">
             <Link
               href={`/dashboard/snapshots/new?account_id=${account.id}&platform=${platform}`}
-              className="rounded-xl border border-white/10 bg-white/[.04] px-4 py-2.5 text-xs font-semibold text-ink-dim hover:bg-white/10"
+              className="rounded-lg border border-mx-field bg-white px-4 py-2.5 text-[12.5px] font-bold text-mx-body hover:border-mx-fieldHover"
             >
               Enter manually
             </Link>
@@ -198,16 +195,16 @@ export default async function PlatformPage({
         )}
 
         {platform === 'captivate' ? (
-          <div className="mt-8 rounded-[18px] border border-white/[.07] bg-white/[.035] p-6 backdrop-blur-xl">
-            <div className="flex items-start justify-between gap-6">
+          <div className="mt-8 rounded-[16px] border border-mx-line bg-white p-6 shadow-card">
+            <div className="flex flex-wrap items-start justify-between gap-6">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+                <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
                   Heads up
                 </div>
-                <h3 className="mt-1 font-display text-base font-bold">
+                <h3 className="mt-1 text-base font-bold text-mx-title">
                   Captivate doesn't expose download counts via API
                 </h3>
-                <p className="mt-2 max-w-xl text-xs text-ink-dim">
+                <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-mx-secondary">
                   Their public REST API gives us show + episode metadata, but
                   not listen / download numbers. Pull what you can from
                   Captivate's web dashboard and drop the totals into a manual
@@ -217,7 +214,7 @@ export default async function PlatformPage({
               </div>
               <Link
                 href={`/dashboard/snapshots/new?account_id=${account.id}&platform=captivate`}
-                className="shrink-0 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2.5 text-xs font-semibold text-white shadow-[0_10px_25px_-10px_rgba(168,85,247,.7)] hover:opacity-95"
+                className="shrink-0 rounded-lg bg-mx-blue px-4 py-2.5 text-[12.5px] font-bold text-white shadow-glow hover:bg-mx-blueDeep"
               >
                 Add downloads manually
               </Link>
@@ -225,44 +222,40 @@ export default async function PlatformPage({
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-[18px] border border-white/[.07] bg-white/[.035] p-6 backdrop-blur-xl">
+            <div className="rounded-[16px] border border-mx-line bg-white p-6 shadow-card">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-display text-base font-bold">
+                <h3 className="text-base font-bold text-mx-title">
                   Followers · all time
                 </h3>
-                <span className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">
+                <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-mx-label">
                   {series.length} snapshots
                 </span>
               </div>
-              <GrowthChart
-                data={series}
-                color={meta.color}
-                metric="followers"
-              />
+              <GrowthChart data={series} color={meta.color} metric="followers" />
             </div>
-            <div className="rounded-[18px] border border-white/[.07] bg-white/[.035] p-6 backdrop-blur-xl">
+            <div className="rounded-[16px] border border-mx-line bg-white p-6 shadow-card">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-display text-base font-bold">
+                <h3 className="text-base font-bold text-mx-title">
                   Period growth
                 </h3>
-                <span className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">
+                <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-mx-label">
                   Δ followers per snapshot
                 </span>
               </div>
-              <GrowthChart data={series} color="#34D399" metric="growth" />
+              <GrowthChart data={series} color="#1D9669" metric="growth" />
             </div>
           </div>
         )}
 
         <div className="mt-8">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-xl font-bold tracking-tight">
+            <h3 className="text-xl font-bold tracking-tight text-mx-title">
               {platform === 'captivate'
                 ? 'Recent episodes'
                 : `Top posts · ${latest?.period_label || 'latest snapshot'}`}
             </h3>
             {platform === 'captivate' && topPosts.length > 0 && (
-              <span className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-mx-label">
                 Newest {topPosts.length}
               </span>
             )}
@@ -275,9 +268,9 @@ export default async function PlatformPage({
                   href={p.permalink || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex gap-4 rounded-[14px] border border-white/[.07] bg-white/[.035] p-3 transition-colors hover:bg-white/[.06]"
+                  className="flex gap-4 rounded-[14px] border border-mx-line bg-white p-3 shadow-card transition-colors hover:bg-mx-hover"
                 >
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] bg-white/5">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] bg-mx-lineSoft">
                     {p.thumb_blob_url ||
                     p.media_url ||
                     captivateShow?.artwork ? (
@@ -293,7 +286,7 @@ export default async function PlatformPage({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xl text-ink-mute">
+                      <div className="flex h-full w-full items-center justify-center text-xl text-mx-muted">
                         ◇
                       </div>
                     )}
@@ -302,24 +295,24 @@ export default async function PlatformPage({
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="line-clamp-2 text-sm font-medium text-ink">
+                    <div className="line-clamp-2 text-sm font-semibold text-mx-title">
                       {p.title || '—'}
                     </div>
-                    <div className="mt-1.5 flex items-center gap-3 text-[11px] text-ink-mute">
+                    <div className="mt-1.5 flex items-center gap-3 text-[11.5px] text-mx-muted">
                       {p.posted_at && (
                         <span>
                           {format(new Date(p.posted_at), 'MMM d, yyyy')}
                         </span>
                       )}
                       {p.permalink && (
-                        <span className="text-ink-dim">Listen ↗</span>
+                        <span className="font-semibold text-mx-link">Listen ↗</span>
                       )}
                     </div>
                   </div>
                 </a>
               ))}
               {topPosts.length === 0 && (
-                <div className="col-span-full rounded-2xl border border-dashed border-white/10 p-12 text-center text-sm text-ink-mute">
+                <div className="col-span-full rounded-2xl border border-dashed border-mx-field p-12 text-center text-sm text-mx-muted">
                   No episodes pulled yet. Hit "Pull fresh snapshot" above.
                 </div>
               )}
@@ -332,9 +325,9 @@ export default async function PlatformPage({
                   href={p.permalink || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="overflow-hidden rounded-[14px] border border-white/[.07] bg-white/[.035] transition-transform hover:-translate-y-0.5"
+                  className="overflow-hidden rounded-[14px] border border-mx-line bg-white shadow-card transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="relative aspect-[9/16] bg-white/5">
+                  <div className="relative aspect-[9/16] bg-mx-lineSoft">
                     {p.thumb_blob_url || p.media_url ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
@@ -343,16 +336,16 @@ export default async function PlatformPage({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-2xl text-ink-mute">
+                      <div className="flex h-full w-full items-center justify-center text-2xl text-mx-muted">
                         ◇
                       </div>
                     )}
                   </div>
                   <div className="space-y-1 px-3 py-2.5">
-                    <div className="line-clamp-1 text-xs text-ink">
+                    <div className="line-clamp-1 text-xs font-semibold text-mx-title">
                       {p.title || '—'}
                     </div>
-                    <div className="flex justify-between text-[10px] text-ink-mute">
+                    <div className="flex justify-between text-[10px] text-mx-muted">
                       <span>{formatNum(p.views || p.impressions || 0)}</span>
                       <span>{formatNum(p.likes || 0)} ♡</span>
                     </div>
@@ -360,7 +353,7 @@ export default async function PlatformPage({
                 </a>
               ))}
               {topPosts.length === 0 && (
-                <div className="col-span-full rounded-2xl border border-dashed border-white/10 p-12 text-center text-sm text-ink-mute">
+                <div className="col-span-full rounded-2xl border border-dashed border-mx-field p-12 text-center text-sm text-mx-muted">
                   No posts logged yet. Run a pull or upload screenshots manually.
                 </div>
               )}
@@ -411,18 +404,15 @@ function CaptivateTiles({
         sub={ageLabel ? `since launch · ${ageLabel}` : 'lifetime'}
         color={color}
       />
-      <div className="relative overflow-hidden rounded-[14px] border border-white/[.07] bg-white/[.035] p-5 backdrop-blur-xl">
-        <div
-          className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full opacity-30 blur-2xl"
-          style={{ background: '#34D399' }}
-        />
-        <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+      <div className="relative overflow-hidden rounded-[14px] border border-mx-line bg-white p-5 pl-6 shadow-card">
+        <span className="absolute left-0 top-0 h-full w-1 bg-mx-green" aria-hidden />
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
           Latest episode
         </div>
-        <div className="mt-2 line-clamp-2 font-display text-sm font-semibold leading-snug text-ink">
+        <div className="mt-2 line-clamp-2 text-sm font-bold leading-snug text-mx-title">
           {latestEpisodeTitle || '—'}
         </div>
-        <div className="mt-1 text-[11px] text-ink-mute">
+        <div className="mt-1 text-[11.5px] text-mx-muted">
           {latestEpisodePublished
             ? format(new Date(latestEpisodePublished), 'MMM d, yyyy')
             : 'no episodes yet'}
@@ -431,25 +421,18 @@ function CaptivateTiles({
       <Tile
         label="Downloads"
         value={downloads ?? null}
-        sub={
-          downloads != null
-            ? 'manual entry'
-            : 'add via "Enter manually"'
-        }
+        sub={downloads != null ? 'manual entry' : 'add via "Enter manually"'}
         color="#E1306C"
       />
-      <div className="relative overflow-hidden rounded-[14px] border border-white/[.07] bg-white/[.035] p-5 backdrop-blur-xl">
-        <div
-          className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full opacity-30 blur-2xl"
-          style={{ background: '#F59E0B' }}
-        />
-        <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+      <div className="relative overflow-hidden rounded-[14px] border border-mx-line bg-white p-5 pl-6 shadow-card">
+        <span className="absolute left-0 top-0 h-full w-1 bg-mx-amber" aria-hidden />
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
           Show launched
         </div>
-        <div className="mt-2 font-display text-2xl font-bold tracking-tight text-gradient">
+        <div className="mt-2 text-2xl font-black tracking-tight text-mx-title">
           {showStart ? format(new Date(showStart), 'MMM yyyy') : '—'}
         </div>
-        <div className="mt-1 text-[11px] text-ink-mute">
+        <div className="mt-1 text-[11.5px] text-mx-muted">
           {ageLabel ? `running ${ageLabel}` : 'unknown'}
         </div>
       </div>
@@ -469,18 +452,19 @@ function Tile({
   color: string;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[14px] border border-white/[.07] bg-white/[.035] p-5 backdrop-blur-xl">
-      <div
-        className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full opacity-30 blur-2xl"
+    <div className="relative overflow-hidden rounded-[14px] border border-mx-line bg-white p-5 pl-6 shadow-card">
+      <span
+        className="absolute left-0 top-0 h-full w-1"
         style={{ background: color }}
+        aria-hidden
       />
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-mute">
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-mx-label">
         {label}
       </div>
-      <div className="mt-2 font-display text-3xl font-bold tracking-tight text-gradient">
+      <div className="mt-2 text-3xl font-black tracking-tight text-mx-title">
         {value != null ? formatNum(value) : '—'}
       </div>
-      <div className="mt-1 text-[11px] text-ink-mute">{sub}</div>
+      <div className="mt-1 text-[11.5px] text-mx-muted">{sub}</div>
     </div>
   );
 }

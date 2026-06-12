@@ -1,38 +1,28 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
+// Inter is retained only for the print/recap surface; Satoshi (loaded via
+// @font-face in globals.css) is the app-wide UI face.
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-inter',
   display: 'swap'
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-space-grotesk',
-  display: 'swap'
-});
-
 export const metadata: Metadata = {
-  title: 'KM Socials · Command Center',
+  title: 'Matthews PR · Command Center',
   description:
-    'Real-time, multi-platform analytics for Kyle Matthews + The Matthews Mentality Podcast.',
+    'Podcast booking, outreach, and social analytics for Kyle Matthews + The Matthews Mentality Podcast.',
   icons: { icon: '/icon.svg' }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <body className="font-sans text-ink">
-        <div className="aurora">
-          <div className="blob3" />
-        </div>
-        <div className="grid-overlay" />
-        <div className="noise" />
-        <div className="relative z-10 min-h-screen">{children}</div>
+    <html lang="en" className={`light ${inter.variable}`}>
+      <body className="min-h-screen bg-white font-sans text-mx-title antialiased">
+        {children}
       </body>
     </html>
   );
