@@ -197,7 +197,7 @@ function ContactModal({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Context, intro source, background…"
-              className="min-h-[120px] bg-white"
+              className="min-h-[120px] w-full bg-white"
             />
           </Field>
         </div>
