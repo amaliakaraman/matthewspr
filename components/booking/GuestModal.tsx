@@ -97,7 +97,10 @@ export function GuestModal() {
 
   return (
     <Dialog open={guestModal.open} onOpenChange={(o) => !o && closeGuestModal()}>
-      <DialogContent className="max-w-[560px] bg-white text-mx-title">
+      <DialogContent
+        className="max-w-[560px] bg-white text-mx-title"
+        style={{ maxHeight: '85vh', overflowY: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[20px] font-bold text-mx-title">
             {editing ? 'Edit Guest' : 'Add Guest'}

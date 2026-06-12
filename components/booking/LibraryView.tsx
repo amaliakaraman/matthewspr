@@ -155,7 +155,10 @@ function ScriptModal({ open, script, onClose }: { open: boolean; script: EmailSc
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[560px] bg-white text-mx-title">
+      <DialogContent
+        className="max-w-[560px] bg-white text-mx-title"
+        style={{ maxHeight: '85vh', overflowY: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[19px] font-bold">{script ? 'Edit Script' : 'Add Script'}</DialogTitle>
         </DialogHeader>

@@ -255,7 +255,10 @@ function AddTravelModal({ open, onClose }: { open: boolean; onClose: () => void 
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[460px] bg-white text-mx-title">
+      <DialogContent
+        className="max-w-[460px] bg-white text-mx-title"
+        style={{ maxHeight: '85vh', overflowY: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[19px] font-bold">Add Travel</DialogTitle>
         </DialogHeader>
@@ -300,7 +303,10 @@ function AddAvailabilityModal({ open, onClose }: { open: boolean; onClose: () =>
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[460px] bg-white text-mx-title">
+      <DialogContent
+        className="max-w-[460px] bg-white text-mx-title"
+        style={{ maxHeight: '85vh', overflowY: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[19px] font-bold">Add Availability</DialogTitle>
         </DialogHeader>

@@ -174,7 +174,10 @@ function AddClipModal({ open, onClose }: { open: boolean; onClose: () => void })
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[440px] bg-white text-mx-title">
+      <DialogContent
+        className="max-w-[440px] bg-white text-mx-title"
+        style={{ maxHeight: '85vh', overflowY: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[19px] font-bold">Add Video Clip</DialogTitle>
         </DialogHeader>
