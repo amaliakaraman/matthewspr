@@ -16,7 +16,9 @@ import { verifyState } from '@/lib/crypto';
 export async function POST(req: NextRequest) {
   const sb = supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL('/login', req.url));
+  // 303 so the browser follows with GET (a default 307 would re-POST to the
+  // login page and trigger a 405).
+  if (!user) return NextResponse.redirect(new URL('/login', req.url), 303);
 
   let token = '';
   try {
@@ -31,5 +33,5 @@ export async function POST(req: NextRequest) {
   }
 
   await sb.auth.signOut();
-  return NextResponse.redirect(new URL('/login', req.url));
+  return NextResponse.redirect(new URL('/login', req.url), 303);
 }

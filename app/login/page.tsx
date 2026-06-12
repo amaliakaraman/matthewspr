@@ -29,26 +29,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-6">
       <div className="glass w-full max-w-md rounded-3xl p-10">
-        <div className="mb-8 flex items-center gap-4">
-          <div className="relative h-12 w-12 rounded-2xl bg-[conic-gradient(from_130deg,#38BDF8,#7C3AED,#E1306C,#F59E0B,#38BDF8)] p-[3px]">
-            <div className="flex h-full w-full items-center justify-center rounded-xl bg-surface-0">
-              <span className="text-xl">⚡</span>
-            </div>
-          </div>
-          <div>
-            <div className="font-display text-xl font-bold">KM Socials</div>
-            <div className="text-xs uppercase tracking-[0.18em] text-ink-mute">
-              Command Center
-            </div>
-          </div>
-        </div>
-
-        <h1 className="font-display text-3xl font-bold tracking-tight">
-          Sign in.
+        <h1 className="text-[28px] font-bold tracking-[-0.01em] text-ink">
+          Matthews PR Dashboard
         </h1>
-        <p className="mt-2 text-sm text-ink-dim">
-          Use the email and password your admin set up for you.
-        </p>
 
         <form onSubmit={submit} className="mt-8 space-y-4">
           <div>
@@ -93,10 +76,6 @@ export default function LoginPage() {
             </div>
           )}
         </form>
-
-        <p className="mt-6 text-center text-xs text-ink-mute">
-          New here? Ask your admin to add you in Settings → Team.
-        </p>
       </div>
     </div>
   );
