@@ -260,6 +260,9 @@ interface BookingContextValue {
   // io
   exportData: () => void;
   importData: (file: File) => Promise<void>;
+  // write error surface
+  writeError: string | null;
+  clearWriteError: () => void;
 }
 
 const BookingContext = createContext<BookingContextValue | null>(null);
@@ -275,6 +278,7 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<BookingData>(EMPTY_DATA);
   const [hydrated, setHydrated] = useState(false);
   const [guestModal, setGuestModal] = useState<GuestModalState>({ open: false });
+  const [writeError, setWriteError] = useState<string | null>(null);
 
   // Always-current snapshot so mutations can compute the next row without
   // chaining setState side-effects.
@@ -410,13 +414,43 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
     refetchReminders
   ]);
 
-  /* ── Write helpers (optimistic local update + targeted upsert/delete) ───── */
+  /* ── Write helpers (optimistic local update + targeted upsert/delete) ─────
+     Every write is awaited and verified. If the database rejects it (expired
+     session, RLS, network, validation), we surface a visible error AND resync
+     the affected slice from the DB so the UI never silently lies about a save. */
+
+  const run = useCallback(
+    async (
+      op: PromiseLike<{ error: { message: string } | null }>,
+      resync: () => void | Promise<void>
+    ) => {
+      try {
+        const { error } = await op;
+        if (error) throw error;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Your change could not be saved.';
+        // eslint-disable-next-line no-console
+        console.error('[booking] write failed:', err);
+        setWriteError(message);
+        try {
+          await resync();
+        } catch {
+          /* resync best-effort */
+        }
+      }
+    },
+    []
+  );
 
   const saveGuest = useCallback(
     (g: Guest) => {
-      void supabase.from('booking_guests').upsert(guestToRow(g), { onConflict: 'id' });
+      void run(
+        supabase.from('booking_guests').upsert(guestToRow(g), { onConflict: 'id' }),
+        refetchGuests
+      );
     },
-    [supabase]
+    [run, supabase, refetchGuests]
   );
 
   const patchGuestAndSave = useCallback(
@@ -445,7 +479,7 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
       updateGuest: (id, patch) => patchGuestAndSave(id, (g) => ({ ...g, ...patch })),
       removeGuest: (id) => {
         setData((d) => ({ ...d, guests: d.guests.filter((g) => g.id !== id) }));
-        void supabase.from('booking_guests').delete().eq('id', id);
+        void run(supabase.from('booking_guests').delete().eq('id', id), refetchGuests);
       },
       toggleTask: (id, task) =>
         patchGuestAndSave(id, (g) => ({
@@ -467,18 +501,27 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
       addAvailability: (b) => {
         const block: AvailabilityBlock = { ...b, id: uid('a') };
         setData((d) => ({ ...d, availability: [...d.availability, block] }));
-        void supabase.from('kyle_availability').upsert(availabilityToRow(block), { onConflict: 'id' });
+        void run(
+          supabase.from('kyle_availability').upsert(availabilityToRow(block), { onConflict: 'id' }),
+          refetchAvailability
+        );
       },
       addTravel: (t) => {
         const range: TravelRange = { ...t, id: uid('t') };
         setData((d) => ({ ...d, travel: [...d.travel, range] }));
-        void supabase.from('kyle_travel').upsert(travelToRow(range), { onConflict: 'id' });
+        void run(
+          supabase.from('kyle_travel').upsert(travelToRow(range), { onConflict: 'id' }),
+          refetchTravel
+        );
       },
 
       addOutreach: (o) => {
         const row: OutreachRow = { ...o, id: uid('o') };
         setData((d) => ({ ...d, outreach: [row, ...d.outreach] }));
-        void supabase.from('outreach_contacts').upsert(outreachToRow(row), { onConflict: 'id' });
+        void run(
+          supabase.from('outreach_contacts').upsert(outreachToRow(row), { onConflict: 'id' }),
+          refetchOutreach
+        );
       },
       updateOutreach: (id, patch) => {
         const current = dataRef.current.outreach.find((o) => o.id === id);
@@ -488,16 +531,22 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
           ...d,
           outreach: d.outreach.map((o) => (o.id === id ? updated : o))
         }));
-        void supabase.from('outreach_contacts').upsert(outreachToRow(updated), { onConflict: 'id' });
+        void run(
+          supabase.from('outreach_contacts').upsert(outreachToRow(updated), { onConflict: 'id' }),
+          refetchOutreach
+        );
       },
       removeOutreach: (id) => {
         setData((d) => ({ ...d, outreach: d.outreach.filter((o) => o.id !== id) }));
-        void supabase.from('outreach_contacts').delete().eq('id', id);
+        void run(supabase.from('outreach_contacts').delete().eq('id', id), refetchOutreach);
       },
       addScript: (s) => {
         const script: EmailScript = { ...s, id: uid('s') };
         setData((d) => ({ ...d, scripts: [...d.scripts, script] }));
-        void supabase.from('email_scripts').upsert(scriptToRow(script), { onConflict: 'id' });
+        void run(
+          supabase.from('email_scripts').upsert(scriptToRow(script), { onConflict: 'id' }),
+          refetchScripts
+        );
       },
       updateScript: (id, patch) => {
         const current = dataRef.current.scripts.find((s) => s.id === id);
@@ -507,12 +556,18 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
           ...d,
           scripts: d.scripts.map((s) => (s.id === id ? updated : s))
         }));
-        void supabase.from('email_scripts').upsert(scriptToRow(updated), { onConflict: 'id' });
+        void run(
+          supabase.from('email_scripts').upsert(scriptToRow(updated), { onConflict: 'id' }),
+          refetchScripts
+        );
       },
       addClip: (c) => {
         const clip: VideoClip = { ...c, id: uid('c') };
         setData((d) => ({ ...d, clips: [...d.clips, clip] }));
-        void supabase.from('video_clips').upsert(clipToRow(clip), { onConflict: 'id' });
+        void run(
+          supabase.from('video_clips').upsert(clipToRow(clip), { onConflict: 'id' }),
+          refetchClips
+        );
       },
       toggleClip: (id, field) => {
         const current = dataRef.current.clips.find((c) => c.id === id);
@@ -522,21 +577,30 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
           ...d,
           clips: d.clips.map((c) => (c.id === id ? updated : c))
         }));
-        void supabase.from('video_clips').upsert(clipToRow(updated), { onConflict: 'id' });
+        void run(
+          supabase.from('video_clips').upsert(clipToRow(updated), { onConflict: 'id' }),
+          refetchClips
+        );
       },
       addIgIdea: (text) => {
         const idea: Idea = { id: uid('ig'), text };
         setData((d) => ({ ...d, igIdeas: [...d.igIdeas, idea] }));
-        void supabase
-          .from('content_ideas')
-          .upsert({ id: idea.id, kind: 'ig', text, color: null }, { onConflict: 'id' });
+        void run(
+          supabase
+            .from('content_ideas')
+            .upsert({ id: idea.id, kind: 'ig', text, color: null }, { onConflict: 'id' }),
+          refetchIdeas
+        );
       },
       addPodcastIdea: (text) => {
         const idea: Idea = { id: uid('p'), text };
         setData((d) => ({ ...d, podcastIdeas: [...d.podcastIdeas, idea] }));
-        void supabase
-          .from('content_ideas')
-          .upsert({ id: idea.id, kind: 'podcast', text, color: null }, { onConflict: 'id' });
+        void run(
+          supabase
+            .from('content_ideas')
+            .upsert({ id: idea.id, kind: 'podcast', text, color: null }, { onConflict: 'id' }),
+          refetchIdeas
+        );
       },
 
       openAddGuest: () => setGuestModal({ open: true }),
@@ -565,9 +629,28 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         const text = await file.text();
         const parsed = JSON.parse(text) as Partial<BookingData>;
         setData((prev) => ({ ...prev, ...parsed }));
-      }
+      },
+
+      writeError,
+      clearWriteError: () => setWriteError(null)
     }),
-    [data, hydrated, guestModal, supabase, saveGuest, patchGuestAndSave]
+    [
+      data,
+      hydrated,
+      guestModal,
+      supabase,
+      run,
+      saveGuest,
+      patchGuestAndSave,
+      refetchGuests,
+      refetchAvailability,
+      refetchTravel,
+      refetchOutreach,
+      refetchScripts,
+      refetchClips,
+      refetchIdeas,
+      writeError
+    ]
   );
 
   return (
@@ -580,6 +663,25 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         children
       )}
       <GuestModal />
+      {writeError && (
+        <div className="fixed bottom-5 left-1/2 z-[100] w-[min(440px,calc(100vw-2rem))] -translate-x-1/2">
+          <div className="flex items-start gap-3 rounded-xl border border-mx-red/30 bg-white px-4 py-3 shadow-card">
+            <span className="mt-[2px] h-2 w-2 shrink-0 rounded-full bg-mx-red" />
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-mx-title">Change wasn’t saved</p>
+              <p className="mt-0.5 text-[12px] text-mx-secondary">
+                {writeError}. The view was reset to the last saved data — please try again.
+              </p>
+            </div>
+            <button
+              onClick={() => setWriteError(null)}
+              className="text-[12px] font-bold text-mx-link hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
     </BookingContext.Provider>
   );
 }
